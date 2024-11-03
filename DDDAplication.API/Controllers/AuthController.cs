@@ -1,5 +1,7 @@
 ﻿using DDDAplication.Application.DTOs;
 using DDDAplication.Domain.Entities;
+using DDDAplication.Infrastructure.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -13,10 +15,10 @@ namespace DDDAplication.API.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
 
-        public AuthController(UserManager<User> userManager, IConfiguration configuration)
+        public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -26,10 +28,14 @@ namespace DDDAplication.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModelDto model)
         {
+            if (model == null)
+            {
+                return BadRequest("Model is null");
+            }
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var user = new User
+            var user = new ApplicationUser
             {
                 UserName = model.Username,
                 Email = model.Email
@@ -47,7 +53,7 @@ namespace DDDAplication.API.Controllers
             }
             
 
-            return Ok(new { message = "User registered successfully." });
+            return Ok(new { message = "User registered successfully.", success= true});
         }
 
         // User Login and Token Generation
@@ -60,12 +66,12 @@ namespace DDDAplication.API.Controllers
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
                 return Unauthorized(new { message = "Invalid credentials." });
-
-            var token = GenerateJwtToken(user);
+            
+            var token = JwtHelper.GenerateToken(user, _configuration);
             return Ok(new { token });
         }
 
-        private string GenerateJwtToken(User user)
+        private string GenerateJwtToken(ApplicationUser user)
         {
             try
             {
@@ -105,6 +111,61 @@ namespace DDDAplication.API.Controllers
                 // Log the exception or handle it as needed
                 throw new Exception($"An error occurred while generating the JWT token: {ex.Message}", ex);
             }
+        }
+
+        // Confirm Email
+        [HttpPost("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailModelDto model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = await _userManager.FindByIdAsync(model.UserId);
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+
+            var result = await _userManager.ConfirmEmailAsync(user, model.Token);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok(new { message = "Email confirmed successfully." });
+        }
+
+        // Reset Password
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModelDto model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = await _userManager.FindByNameAsync(model.Username);
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+
+            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok(new { message = "Password has been reset successfully." });
+        }
+
+        // Send Password Reset Link
+        [HttpPost("send-reset-link")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SendResetLink([FromBody] SendResetLinkModelDto model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            // Aquí debes enviar el token al correo del usuario
+            // Por ejemplo, podrías usar un servicio de correo electrónico para enviar el token
+
+            return Ok(new { message = "Password reset link has been sent." });
         }
     }
 }

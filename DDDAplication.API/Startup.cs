@@ -1,6 +1,7 @@
 ﻿using DDDAplication.API.Extensions;
 using DDDAplication.Application;
 using DDDAplication.Domain.Entities;
+using DDDAplication.Infrastructure;
 using DDDAplication.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -19,12 +20,12 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        // Configuration DbContext con Identity
+        // Configuration of DbContext with Identity
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-        // Configuration Identity
-        services.AddIdentity<User, Rol>(options =>
+        // Configuration of Identity
+        services.AddIdentity<ApplicationUser, Role>(options =>
         {
             options.Password.RequireDigit = true; // Requires at least one digit
             options.Password.RequireLowercase = true; // Requires at least one lowercase letter
@@ -36,7 +37,7 @@ public class Startup
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
-        // Configuration JWT Authentication
+        // Configuration of JWT Authentication
         var jwtSettings = Configuration.GetSection("JwtSettings");
         var secretKey = jwtSettings["Secret"];
 
@@ -59,32 +60,29 @@ public class Startup
             };
         });
 
-      
-
         services.AddAuthorization();
 
         // Add services to the container.
         services.AddControllers();
 
         services.AddEndpointsApiExplorer();
-        services.AddSwagger();//Swagger
+        services.AddSwagger(); // Swagger
 
         // Register application and infrastructure layers
         services.AddApplication(); // Register the application layer
         services.AddDataAccess(Configuration); // Register the infrastructure layer
-        //services.AddJwt(Configuration);// Token Configurations
+        //services.AddJwt(Configuration); // Token Configurations
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-
         // Configure the HTTP request pipeline.
         if (env.IsDevelopment())
         {
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseHttpsRedirection();
-            app.UseStaticFiles(); // Solo si es necesario
+            app.UseStaticFiles(); // Only if necessary
         }
         else
         {
@@ -100,17 +98,25 @@ public class Startup
                 .AllowAnyHeader()
         );
 
-        app.UseHttpsRedirection(); // Redirección a HTTPS
+        app.UseHttpsRedirection(); // Redirect to HTTPS
+        app.UseStaticFiles();
 
         app.UseAuthentication(); // Authentication
-        app.UseAuthorization();  // Middleware to Authorization
+        app.UseAuthorization();  // Middleware for Authorization
 
-        // Configura los puntos finales
+        // Configure the endpoints
         app.UseEndpoints(endpoints =>
         {
-            endpoints.MapControllers(); // Mapea los controladores
+            endpoints.MapControllers(); // Map the controllers
         });
 
-        
+        using (var scope = app.ApplicationServices.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            var configuration = services.GetRequiredService<IConfiguration>();
+            AutomatedMigration.MigrateAsync(services, configuration).GetAwaiter().GetResult();
+        }
     }
+
+
 }

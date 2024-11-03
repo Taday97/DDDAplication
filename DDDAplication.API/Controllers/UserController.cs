@@ -7,7 +7,6 @@ namespace DDDAplication.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -17,7 +16,7 @@ namespace DDDAplication.API.Controllers
             _userService = userService;
         }
 
-
+        // Get all users
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -25,7 +24,7 @@ namespace DDDAplication.API.Controllers
             return Ok(users);
         }
 
-
+        // Get a user by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(string id)
         {
@@ -37,20 +36,7 @@ namespace DDDAplication.API.Controllers
             return Ok(user);
         }
 
-
-        [HttpPost]
-        public async Task<IActionResult> CreateUser([FromBody] UserDto userCreateDto)
-        {
-            if (userCreateDto == null)
-            {
-                return BadRequest(new { Message = "User data is required." });
-            }
-
-            var createdUser = await _userService.AddAsync(userCreateDto);
-            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
-        }
-
-
+        // Update an existing user
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UserDto userUpdateDto)
         {
@@ -59,7 +45,7 @@ namespace DDDAplication.API.Controllers
                 return BadRequest(new { Message = "User data is required." });
             }
 
-            if (id.Equals(userUpdateDto.Id))
+            if (id != userUpdateDto.Id) // Ensure the ID matches
             {
                 return BadRequest(new { Message = "The ID in the URL does not match the ID in the request body." });
             }
@@ -74,7 +60,7 @@ namespace DDDAplication.API.Controllers
             return Ok(updatedUser);
         }
 
-
+        // Delete a user
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(string id)
         {
@@ -84,8 +70,8 @@ namespace DDDAplication.API.Controllers
                 return NotFound(new { Message = $"User with ID {id} not found." });
             }
 
-            var deletedUser = await _userService.Delete(id);
-            return Ok(deletedUser);
+            await _userService.Delete(id); // Call the delete service method
+            return NoContent(); // Return 204 No Content to indicate successful deletion
         }
     }
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DDDAplication.Domain.Entities
 {
-    public class User : IdentityUser<Guid>
+    public class ApplicationUser : IdentityUser<Guid>
     {
     }
 }

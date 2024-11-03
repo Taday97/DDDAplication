@@ -16,6 +16,7 @@ namespace DDDAplication.Application
         {
             // Register Service Applications
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IRoleService, RoleService>();
             services.RegisterAutoMapper();
             return services;
         }

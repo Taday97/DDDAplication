@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using DDDAplication.Application.DTOs;
 using DDDAplication.Application.Interfaces;
-using DDDAplication.Domain.Entities;
 using DDDAplication.Domain.Interfaces;
 
 namespace DDDAplication.Application.Services
@@ -17,18 +16,6 @@ namespace DDDAplication.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<UserDto> AddAsync(UserDto userDto)
-        {
-            if (userDto == null)
-            {
-                throw new ArgumentNullException(nameof(userDto));
-            }
-            
-            var user = _mapper.Map<User>(userDto);
-            await _userRepository.AddAsync(user);
-
-            return userDto;
-        }
 
         public async Task<UserDto> GetByIdAsync(string id)
         {

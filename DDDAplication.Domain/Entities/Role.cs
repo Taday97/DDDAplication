@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DDDAplication.Domain.Entities
 {
-    public class Rol:IdentityRole<Guid>
+    public class Role:IdentityRole<Guid>
     {
     }
 }

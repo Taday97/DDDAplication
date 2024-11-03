@@ -9,11 +9,11 @@ namespace DDDAplication.Domain.Interfaces
 {
     public interface IUserRepository
     {
-        Task<IEnumerable<User>> GetAllAsync();
-        Task<User> GetByIdAsync(string id);
-        Task<User> AddAsync(User user);
+        Task<IEnumerable<ApplicationUser>> GetAllAsync();
+        Task<ApplicationUser> GetByIdAsync(string id);
+        Task<ApplicationUser> AddAsync(ApplicationUser user);
 
-        Task<User> UpdateAsync(User user);
-        Task<User> DeleteAsync(string id);
+        Task<ApplicationUser> UpdateAsync(ApplicationUser user);
+        Task<ApplicationUser> DeleteAsync(string id);
     }
 }
