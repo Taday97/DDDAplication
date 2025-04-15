@@ -1,0 +1,29 @@
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile:  DDDAplication.API/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=DDD-Aplication;User Id=sa;Password=NuevaContraseñaSegura!;TrustServerCertificate=True
+      - JwtSettings__Secret=una_clave_secreta_lo_bastante_larga_y_segura
+      - JwtSettings__Issuer=tu_emisor
+      - JwtSettings__Audience=tu_audiencia
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - sqlserver
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: "NuevaContraseñaSegura!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "15433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+
+volumes:
+  sql_data:

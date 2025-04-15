@@ -16,7 +16,6 @@ namespace DDDAplication.API.Controllers
             _userService = userService;
         }
 
-        // Get all users
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -24,7 +23,6 @@ namespace DDDAplication.API.Controllers
             return Ok(users);
         }
 
-        // Get a user by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(string id)
         {
@@ -36,7 +34,6 @@ namespace DDDAplication.API.Controllers
             return Ok(user);
         }
 
-        // Update an existing user
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UserDto userUpdateDto)
         {
@@ -60,7 +57,6 @@ namespace DDDAplication.API.Controllers
             return Ok(updatedUser);
         }
 
-        // Delete a user
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(string id)
         {
@@ -70,8 +66,8 @@ namespace DDDAplication.API.Controllers
                 return NotFound(new { Message = $"User with ID {id} not found." });
             }
 
-            await _userService.Delete(id); // Call the delete service method
-            return NoContent(); // Return 204 No Content to indicate successful deletion
+            await _userService.Delete(id);
+            return NoContent(); 
         }
     }
 }

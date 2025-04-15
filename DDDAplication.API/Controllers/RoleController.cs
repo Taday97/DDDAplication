@@ -18,7 +18,6 @@ namespace DDDAplication.API.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/rol
         [HttpGet]
         public async Task<IActionResult> GetAllRoles()
         {
@@ -26,7 +25,6 @@ namespace DDDAplication.API.Controllers
             return Ok(roles);
         }
 
-        // GET: api/rol/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRoleById(string id)
         {
@@ -38,7 +36,6 @@ namespace DDDAplication.API.Controllers
             return Ok(role);
         }
 
-        // POST: api/rol
         [HttpPost]
         public async Task<IActionResult> CreateRole([FromBody] RoleDto rolCreateDto)
         {
@@ -51,7 +48,6 @@ namespace DDDAplication.API.Controllers
             return CreatedAtAction(nameof(GetRoleById), new { id = createdRole.Id }, createdRole);
         }
 
-        // PUT: api/rol/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(string id, [FromBody] RoleDto rolUpdateDto)
         {
@@ -75,7 +71,6 @@ namespace DDDAplication.API.Controllers
             return Ok(updatedRole);
         }
 
-        // DELETE: api/rol/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRole(string id)
         {

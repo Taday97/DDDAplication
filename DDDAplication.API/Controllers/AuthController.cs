@@ -23,8 +23,7 @@ namespace DDDAplication.API.Controllers
             _userManager = userManager;
             _configuration = configuration;
         }
-
-        // User Registration
+     
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModelDto model)
         {
@@ -39,7 +38,6 @@ namespace DDDAplication.API.Controllers
             {
                 UserName = model.Username,
                 Email = model.Email
-                // Assign other properties if necessary
             };
             try
             {
@@ -56,7 +54,6 @@ namespace DDDAplication.API.Controllers
             return Ok(new { message = "User registered successfully.", success= true});
         }
 
-        // User Login and Token Generation
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModelDto model)
         {
@@ -113,7 +110,7 @@ namespace DDDAplication.API.Controllers
             }
         }
 
-        // Confirm Email
+        
         [HttpPost("confirm-email")]
         public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailModelDto model)
         {
@@ -131,7 +128,7 @@ namespace DDDAplication.API.Controllers
             return Ok(new { message = "Email confirmed successfully." });
         }
 
-        // Reset Password
+      
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModelDto model)
         {
@@ -149,7 +146,6 @@ namespace DDDAplication.API.Controllers
             return Ok(new { message = "Password has been reset successfully." });
         }
 
-        // Send Password Reset Link
         [HttpPost("send-reset-link")]
         [AllowAnonymous]
         public async Task<IActionResult> SendResetLink([FromBody] SendResetLinkModelDto model)
@@ -162,8 +158,8 @@ namespace DDDAplication.API.Controllers
                 return NotFound(new { message = "User not found." });
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            // Aquí debes enviar el token al correo del usuario
-            // Por ejemplo, podrías usar un servicio de correo electrónico para enviar el token
+            // Here the token should be sent to the user's email
+
 
             return Ok(new { message = "Password reset link has been sent." });
         }

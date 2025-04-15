@@ -1,27 +1,27 @@
-﻿using AutoMapper;
+﻿using DDDAplication.Api.IntegrationTests.Common;
+using DDDAplication.API;
 using DDDAplication.API.Controllers;
 using DDDAplication.Application.DTOs;
 using DDDAplication.Application.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
 
 namespace DDDAplication.Api.IntegrationTests
 {
-    [TestFixture] // Ensure this is present for NUnit
+    [TestFixture] 
     public class UserControllerTest
     {
         private HttpClient _client;
-        private readonly WebApplicationFactory<Startup> _factory; // We store the factory
+        private readonly ApiApplicationFactory<Program> _factory; 
 
         public UserControllerTest()
         {
-            _factory = new WebApplicationFactory<Startup>(); // Replace Startup with your actual startup class
+            _factory = new ApiApplicationFactory<Program>();
             _client = _factory.CreateClient();
         }
 
-        [OneTimeSetUp] // This method runs once before all tests
+        [OneTimeSetUp] 
         [SetUp]
         public void SetUp()
         {
@@ -30,7 +30,7 @@ namespace DDDAplication.Api.IntegrationTests
         [Test]
         public async Task GetAllUsers_ShouldReturnOk_WithUsersList()
         {
-            // Arrange
+          
             var mockService = new Mock<IUserService>();
             var usersList = new List<UserDto>
             {
@@ -40,11 +40,11 @@ namespace DDDAplication.Api.IntegrationTests
             mockService.Setup(service => service.GetAllAsync()).ReturnsAsync(usersList);
             var controller = new UserController(mockService.Object);
 
-            // Act
+          
             var result = await controller.GetAllUsers();
             var okResult = result as OkObjectResult;
 
-            // Assert
+           
             okResult.Should().NotBeNull();
             okResult.StatusCode.Should().Be(200);
             okResult.Value.Should().BeEquivalentTo(usersList);
@@ -53,18 +53,18 @@ namespace DDDAplication.Api.IntegrationTests
         [Test]
         public async Task GetUserById_ShouldReturnOk_WhenUserExists()
         {
-            // Arrange
+           
             var userId = "1";
             var userDto = new UserDto { Id = userId, UserName = "John Doe" };
             var mockService = new Mock<IUserService>();
             mockService.Setup(service => service.GetByIdAsync(userId)).ReturnsAsync(userDto);
             var controller = new UserController(mockService.Object);
 
-            // Act
+          
             var result = await controller.GetUserById(userId);
             var okResult = result as OkObjectResult;
 
-            // Assert
+           
             okResult.Should().NotBeNull();
             okResult.StatusCode.Should().Be(200);
             okResult.Value.Should().BeEquivalentTo(userDto);
@@ -73,17 +73,17 @@ namespace DDDAplication.Api.IntegrationTests
         [Test]
         public async Task GetUserById_ShouldReturnNotFound_WhenUserDoesNotExist()
         {
-            // Arrange
+           
             var userId = "invalid-id";
             var mockService = new Mock<IUserService>();
             mockService.Setup(service => service.GetByIdAsync(userId)).ReturnsAsync((UserDto)null);
             var controller = new UserController(mockService.Object);
 
-            // Act
+           
             var result = await controller.GetUserById(userId);
             var notFoundResult = result as NotFoundObjectResult;
 
-            // Assert
+         
             notFoundResult.Should().NotBeNull();
             notFoundResult.StatusCode.Should().Be(404);
         }
@@ -91,7 +91,7 @@ namespace DDDAplication.Api.IntegrationTests
         [Test]
         public async Task UpdateUser_ShouldReturnOk_WhenUserIsUpdated()
         {
-            // Arrange
+           
             var userId = "1";
             var userDto = new UserDto { Id = userId, UserName = "Updated User" };
             var mockService = new Mock<IUserService>();
@@ -99,11 +99,11 @@ namespace DDDAplication.Api.IntegrationTests
             mockService.Setup(service => service.Update(userDto)).ReturnsAsync(userDto);
             var controller = new UserController(mockService.Object);
 
-            // Act
+           
             var result = await controller.UpdateUser(userId, userDto);
             var okResult = result as OkObjectResult;
 
-            // Assert
+          
             okResult.Should().NotBeNull();
             okResult.StatusCode.Should().Be(200);
             okResult.Value.Should().BeEquivalentTo(userDto);
@@ -112,17 +112,17 @@ namespace DDDAplication.Api.IntegrationTests
         [Test]
         public async Task UpdateUser_ShouldReturnBadRequest_WhenIdMismatch()
         {
-            // Arrange
+         
             var userId = "1";
             var userDto = new UserDto { Id = "2", UserName = "User" }; // Different ID
             var mockService = new Mock<IUserService>();
             var controller = new UserController(mockService.Object);
 
-            // Act
+           
             var result = await controller.UpdateUser(userId, userDto);
             var badRequestResult = result as BadRequestObjectResult;
 
-            // Assert
+          
             badRequestResult.Should().NotBeNull();
             badRequestResult.StatusCode.Should().Be(400);
         }
@@ -130,7 +130,7 @@ namespace DDDAplication.Api.IntegrationTests
         [Test]
         public async Task DeleteUser_ShouldReturnNoContent_WhenUserIsDeleted()
         {
-            // Arrange
+           
             var userId = "1";
             var userDto = new UserDto { Id = userId, UserName = "User to Delete" };
             var mockService = new Mock<IUserService>();
@@ -138,11 +138,11 @@ namespace DDDAplication.Api.IntegrationTests
             mockService.Setup(service => service.Delete(userId)).ReturnsAsync(userDto);
             var controller = new UserController(mockService.Object);
 
-            // Act
+        
             var result = await controller.DeleteUser(userId);
             var noContentResult = result as NoContentResult;
 
-            // Assert
+        
             noContentResult.Should().NotBeNull();
             noContentResult.StatusCode.Should().Be(204);
         }
@@ -150,26 +150,26 @@ namespace DDDAplication.Api.IntegrationTests
         [Test]
         public async Task DeleteUser_ShouldReturnNotFound_WhenUserDoesNotExist()
         {
-            // Arrange
+         
             var userId = "invalid-id";
             var mockService = new Mock<IUserService>();
             mockService.Setup(service => service.GetByIdAsync(userId)).ReturnsAsync((UserDto)null);
             var controller = new UserController(mockService.Object);
 
-            // Act
+       
             var result = await controller.DeleteUser(userId);
             var notFoundResult = result as NotFoundObjectResult;
 
-            // Assert
+          
             notFoundResult.Should().NotBeNull();
             notFoundResult.StatusCode.Should().Be(404);
         }
 
-        [OneTimeTearDown] // This method runs once after all tests
+        [OneTimeTearDown] 
         public void Cleanup()
         {
-            _client.Dispose(); // Release the HttpClient at the end
-            _factory.Dispose(); // Release the factory
+            _client.Dispose();
+            _factory.Dispose(); 
         }
     }
 }

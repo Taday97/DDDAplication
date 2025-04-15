@@ -1,8 +1,9 @@
-﻿using DDDAplication.Application.DTOs;
+﻿using DDDAplication.Api.IntegrationTests.Common;
+using DDDAplication.API;
+using DDDAplication.Application.DTOs;
 using DDDAplication.Domain.Entities;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Net.Http.Json;
@@ -14,11 +15,11 @@ namespace DDDAplication.Api.IntegrationTests
     public class AuthControllerTests
     {
         private HttpClient _client;
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly ApiApplicationFactory<Program> _factory;
 
         public AuthControllerTests()
         {
-            _factory = new WebApplicationFactory<Startup>();
+            _factory = new ApiApplicationFactory<Program>();
             _client = _factory.CreateClient();
         }
 
@@ -31,7 +32,7 @@ namespace DDDAplication.Api.IntegrationTests
         [Test]
         public async Task Login_Should_Return_Token_On_Valid_Credentials()
         {
-            // Register user first to ensure login works
+           
             var newUser = new RegisterModelDto
             {
                 Username = $"testuser_{Guid.NewGuid()}",
@@ -41,7 +42,7 @@ namespace DDDAplication.Api.IntegrationTests
             var registerResponse = await _client.PostAsJsonAsync("/api/auth/register", newUser);
             registerResponse.StatusCode.Should().Be(HttpStatusCode.OK, because: "User registered successfully");
 
-            // Set up login credentials
+          
             var loginUser = new LoginModelDto
             {
                 Username = newUser.Username,
@@ -175,6 +176,7 @@ namespace DDDAplication.Api.IntegrationTests
             responseBody.Should().NotBeNull();
             responseBody.Should().ContainKey("token");
             responseBody["token"].Should().NotBeNull();
+
         }
 
         [Test]

@@ -14,7 +14,6 @@ namespace DDDAplication.Application
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-            // Register Service Applications
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRoleService, RoleService>();
             services.RegisterAutoMapper();
@@ -23,7 +22,7 @@ namespace DDDAplication.Application
 
         private static IServiceCollection RegisterAutoMapper(this IServiceCollection services)
         {
-            services.AddAutoMapper(typeof(IMappingProfilesMarker)); // Register profile of AutoMapper
+            services.AddAutoMapper(typeof(IMappingProfilesMarker));
 
             return services;
         }
