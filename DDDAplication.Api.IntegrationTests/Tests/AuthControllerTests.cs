@@ -1,4 +1,5 @@
 ﻿using DDDAplication.Api.IntegrationTests.Common;
+using DDDAplication.Api.IntegrationTests.Helper;
 using DDDAplication.API;
 using DDDAplication.Application.DTOs;
 using DDDAplication.Domain.Entities;
@@ -6,6 +7,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -28,7 +30,6 @@ namespace DDDAplication.Api.IntegrationTests
         public void SetUp()
         {
         }
-
         [Test]
         public async Task Login_Should_Return_Token_On_Valid_Credentials()
         {
@@ -200,6 +201,9 @@ namespace DDDAplication.Api.IntegrationTests
         [Test]
         public async Task ConfirmEmail_Should_Return_Ok_When_Valid_Token()
         {
+            var token = await TokenHelper.GetJwtTokenAsync(_client);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             var existingUserName = $"testuser_{Guid.NewGuid()}";
             var userEmail = $"{existingUserName}@example.com";
             var password = "Test@123";
@@ -217,17 +221,17 @@ namespace DDDAplication.Api.IntegrationTests
                 await userManager.CreateAsync(user, password);
             }
 
-            string token;
+            string tokenNew;
             using (var scope = _factory.Services.CreateScope())
             {
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-                token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                tokenNew = await userManager.GenerateEmailConfirmationTokenAsync(user);
             }
 
             var confirmEmailRequestBody = new ConfirmEmailModelDto
             {
                 UserId = user.Id.ToString(),
-                Token = token
+                Token = tokenNew
             };
 
             var response = await _client.PostAsJsonAsync("/api/auth/confirm-email", confirmEmailRequestBody);
@@ -241,11 +245,15 @@ namespace DDDAplication.Api.IntegrationTests
         [Test]
         public async Task ConfirmEmail_Should_Return_NotFound_When_User_Not_Exists()
         {
+            var token = await TokenHelper.GetJwtTokenAsync(_client);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+
             var invalidUserId = Guid.NewGuid().ToString();
             var confirmEmailRequest = new ConfirmEmailModelDto
             {
                 UserId = invalidUserId,
-                Token = "someToken"
+                Token = token
             };
 
             var response = await _client.PostAsJsonAsync("/api/auth/confirm-email", confirmEmailRequest);
@@ -259,6 +267,9 @@ namespace DDDAplication.Api.IntegrationTests
         [Test]
         public async Task ResetPassword_Should_Return_Ok_When_Valid_Token()
         {
+            var token = await TokenHelper.GetJwtTokenAsync(_client);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             var existingUserName = $"testuser_{Guid.NewGuid()}";
             var userEmail = $"{existingUserName}@example.com";
             var password = "Test@123";
@@ -268,11 +279,11 @@ namespace DDDAplication.Api.IntegrationTests
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
                 user = new ApplicationUser { UserName = existingUserName, Email = userEmail };
                 await userManager.CreateAsync(user, password);
-                var token = await userManager.GeneratePasswordResetTokenAsync(user);
+                var tokenNew = await userManager.GeneratePasswordResetTokenAsync(user);
                 var resetPasswordRequestBody = new ResetPasswordModelDto
                 {
                     Username = existingUserName,
-                    Token = token,
+                    Token = tokenNew,
                     NewPassword = "NewTest@123"
                 };
 
