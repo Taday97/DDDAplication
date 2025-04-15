@@ -109,7 +109,8 @@ The application includes a robust **global exception handling** system to ensure
 
 ### Screenshots:
 
-![image](https://github.com/user-attachments/assets/6257f098-6cc3-4b4f-b183-8193d2a9d52a)
+![image](https://github.com/user-attachments/assets/90b51f86-455b-4e39-a7dc-777464111e04)
+
 
 
 ---
