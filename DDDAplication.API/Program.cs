@@ -77,15 +77,15 @@ namespace DDDAplication.API
 
             var app = builder.Build();
 
-            //if (!app.Environment.IsDevelopment())
-            //{
-            //    using (var scope = app.Services.CreateScope())
-            //    {
-            //        var services = scope.ServiceProvider;
+            if (!app.Environment.IsDevelopment())
+            {
+                using (var scope = app.Services.CreateScope())
+                {
+                    var services = scope.ServiceProvider;
 
-            //        AutomatedMigration.MigrateAsync(services, configuration).GetAwaiter().GetResult();
-            //    }
-            //}
+                    AutomatedMigration.MigrateAsync(services, configuration).GetAwaiter().GetResult();
+                }
+            }
 
 
 
