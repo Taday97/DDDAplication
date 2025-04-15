@@ -23,7 +23,8 @@ namespace DDDAplication.API.Controllers
             _userManager = userManager;
             _configuration = configuration;
         }
-     
+
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModelDto model)
         {
@@ -54,6 +55,7 @@ namespace DDDAplication.API.Controllers
             return Ok(new { message = "User registered successfully.", success= true});
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModelDto model)
         {

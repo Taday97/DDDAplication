@@ -1,10 +1,13 @@
+using DDDAplication.API.Extensions;
 using DDDAplication.API.Middleware;
 using DDDAplication.Application;
 using DDDAplication.Domain.Entities;
 using DDDAplication.Infrastructure;
 using DDDAplication.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -63,10 +66,16 @@ namespace DDDAplication.API
 
             builder.Services.AddAuthorization();
 
-            builder.Services.AddControllers();
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddControllers(options =>
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                                 .RequireAuthenticatedUser()
+                                 .Build();
+                options.Filters.Add(new AuthorizeFilter(policy));
+            });
 
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwagger();
 
             builder.Services.AddApplication();
             builder.Services.AddDataAccess(configuration);
@@ -86,9 +95,6 @@ namespace DDDAplication.API
                     AutomatedMigration.MigrateAsync(services, configuration).GetAwaiter().GetResult();
                 }
             }
-
-
-
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
