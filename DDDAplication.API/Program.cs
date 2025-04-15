@@ -77,20 +77,20 @@ namespace DDDAplication.API
 
             var app = builder.Build();
 
-            //if (!app.Environment.IsDevelopment())
-            //{
+            if (!app.Environment.IsDevelopment())
+            {
                 using (var scope = app.Services.CreateScope())
                 {
                     var services = scope.ServiceProvider;
 
                     AutomatedMigration.MigrateAsync(services, configuration).GetAwaiter().GetResult();
                 }
-            //}
-        
+            }
 
 
 
-        app.UseSwagger();
+
+            app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 //Build a swagger endpoint
