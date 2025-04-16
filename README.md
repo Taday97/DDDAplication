@@ -114,10 +114,4 @@ The application includes a robust **global exception handling** system to ensure
 
 
 ---
-### Summary of Improvements:
-
-1. **Docker Integration**: Dockerized both the application and the SQL Server database for a streamlined local development experience.
-2. **CI/CD Pipeline**: Set up automated testing, building, and deployment using **GitHub Actions**.
-3. **Global Exception Handling**: Implemented a centralized error management system for consistency across the application.
-4. **Identity Integration**: Integrated **ASP.NET Identity** for secure user authentication, including registration, login, and password management.
 
