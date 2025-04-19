@@ -1,6 +1,7 @@
 ﻿using DDDAplication.Api.IntegrationTests.Common;
 using DDDAplication.Api.IntegrationTests.Helper;
 using DDDAplication.API;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Headers;
@@ -33,13 +34,13 @@ namespace DDDAplication.Api.IntegrationTests.Middleware
             var token = await TokenHelper.GetJwtTokenAsync(_client);
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            // Act
-            var invalidUserId = Guid.NewGuid();
-            var response = await _client.GetAsync($"/api/user/{invalidUserId}");
+            var roleId = "111";
 
-            // Assert
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
 
+            var response = await _client.GetAsync($"/api/role/{roleId}");
+
+
+            response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
             var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
             Assert.That(problemDetails, Is.Not.Null);
             Assert.That(problemDetails.Title, Is.EqualTo("An unexpected error occurred."));

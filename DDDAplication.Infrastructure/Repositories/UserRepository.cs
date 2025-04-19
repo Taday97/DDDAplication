@@ -14,7 +14,16 @@ namespace DDDAplication.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<ApplicationUser> GetByIdAsync(string id) => await _context.Users.FindAsync(id);
+        public async Task<ApplicationUser> GetByIdAsync(string id)
+        {
+            if (!Guid.TryParse(id, out Guid parsedId))
+            {
+                return null;
+            }
+
+            return await _context.Users.FirstOrDefaultAsync(l => l.Id == parsedId);
+        }
+
 
         public async Task<ApplicationUser> AddAsync(ApplicationUser user)
         {

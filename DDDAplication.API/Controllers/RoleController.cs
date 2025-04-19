@@ -28,6 +28,10 @@ namespace DDDAplication.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRoleById(string id)
         {
+            if (string.IsNullOrEmpty(id))
+            {
+                return BadRequest(new { Message = "Role ID is required." });
+            }
             var role = await _rolService.GetByIdAsync(id);
             if (role == null)
             {

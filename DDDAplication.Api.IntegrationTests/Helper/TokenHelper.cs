@@ -7,7 +7,6 @@ namespace DDDAplication.Api.IntegrationTests.Helper
     {
         public static async Task<string> GetJwtTokenAsync(HttpClient client)
         {
-            // Registro del usuario
             var registerModel = new
             {
                 Username =$"testuser{Guid.NewGuid()}",

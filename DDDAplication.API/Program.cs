@@ -1,9 +1,13 @@
+using DDDAplication.API.Configuration;
 using DDDAplication.API.Extensions;
 using DDDAplication.API.Middleware;
 using DDDAplication.Application;
+using DDDAplication.Application.Validators;
 using DDDAplication.Domain.Entities;
 using DDDAplication.Infrastructure;
 using DDDAplication.Infrastructure.Data;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -66,6 +70,8 @@ namespace DDDAplication.API
 
             builder.Services.AddAuthorization();
 
+            builder.Services.AddFluentValidationServices();
+
             builder.Services.AddControllers(options =>
             {
                 var policy = new AuthorizationPolicyBuilder()
@@ -74,11 +80,14 @@ namespace DDDAplication.API
                 options.Filters.Add(new AuthorizeFilter(policy));
             });
 
+
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwagger();
 
-            builder.Services.AddApplication();
-            builder.Services.AddDataAccess(configuration);
+
+            builder.Services.AddApplicationServices();
+            builder.Services.AddAutoMapperServices();
 
 
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -99,7 +108,6 @@ namespace DDDAplication.API
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                //Build a swagger endpoint
                 c.SupportedSubmitMethods(SubmitMethod.Head, SubmitMethod.Get, SubmitMethod.Post, SubmitMethod.Put, SubmitMethod.Patch, SubmitMethod.Delete);
                 c.DefaultModelExpandDepth(2);
                 c.DefaultModelRendering(ModelRendering.Model);

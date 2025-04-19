@@ -107,7 +107,6 @@ namespace DDDAplication.API.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception or handle it as needed
                 throw new Exception($"An error occurred while generating the JWT token: {ex.Message}", ex);
             }
         }
@@ -160,7 +159,6 @@ namespace DDDAplication.API.Controllers
                 return NotFound(new { message = "User not found." });
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            // Here the token should be sent to the user's email
 
 
             return Ok(new { message = "Password reset link has been sent." });

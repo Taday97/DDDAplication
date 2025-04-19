@@ -8,7 +8,7 @@ namespace DDDAplication.Application.Profiles
     {
         public ApplicationProfile()
         {
-            CreateMap<ApplicationUser, UserDto>().ReverseMap(); ;
+            CreateMap<ApplicationUser, UserDto>().ReverseMap();
             CreateMap<Role, RoleDto>().ReverseMap();
         }
     }

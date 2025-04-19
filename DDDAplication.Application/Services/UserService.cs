@@ -2,6 +2,7 @@
 using DDDAplication.Application.DTOs;
 using DDDAplication.Application.Interfaces;
 using DDDAplication.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace DDDAplication.Application.Services
 {
@@ -51,8 +52,7 @@ namespace DDDAplication.Application.Services
             {
                 throw new ArgumentNullException(nameof(userDto));
             }
-
-            var user = await _userRepository.GetByIdAsync(userDto.Id);
+            var user = await _userRepository.GetByIdAsync(userDto.Id.ToString());
             if (user == null)
             {
                 throw new KeyNotFoundException($"User with id {userDto.Id} not found.");
