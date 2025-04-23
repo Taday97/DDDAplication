@@ -40,7 +40,7 @@ jobs:
           reportgenerator "-reports:./TestResults/*.xml" "-targetdir:./TestResults/coverage-report" -reporttypes:Html
 
       - name: Upload coverage report as an artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: coverage-report
           path: ./TestResults/coverage-report
