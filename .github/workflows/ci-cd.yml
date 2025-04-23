@@ -32,15 +32,3 @@ jobs:
       - name: ✅ Run integration tests with code coverage
         run: dotnet test ./DDDAplication.Api.IntegrationTests/DDDAplication.Api.IntegrationTests.csproj --no-build --configuration Release --collect:"XPlat Code Coverage" --verbosity normal
 
-      - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-      - name: Generate coverage report
-        run: |
-          reportgenerator "-reports:./TestResults/*.xml" "-targetdir:./TestResults/coverage-report" -reporttypes:Html
-
-      - name: Upload coverage report as an artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: coverage-report
-          path: ./TestResults/coverage-report
