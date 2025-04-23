@@ -103,6 +103,29 @@ namespace DDDAplication.Infrastructure.Helpers
             }
         }
 
+        public static ClaimsPrincipal GetPrincipalFromExpiredToken(string token, IConfiguration configuration)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(configuration["JwtSettings:Secret"]);
+
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = false,
+                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                }, out var validatedToken);
+
+                return principal;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
     }
 }
 

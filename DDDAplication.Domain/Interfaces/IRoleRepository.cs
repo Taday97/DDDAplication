@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,8 +13,8 @@ namespace DDDAplication.Domain.Interfaces
         Task<IEnumerable<Role>> GetAllAsync();
         Task<Role> GetByIdAsync(string id);
         Task<Role> AddAsync(Role user);
-
         Task<Role> UpdateAsync(Role user);
         Task<Role> DeleteAsync(string id);
+        Task<IEnumerable<Role>> GetRolesAsync(Expression<Func<Role, bool>> filter = null);
     }
 }

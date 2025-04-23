@@ -9,10 +9,10 @@ namespace DDDAplication.Application.Interfaces
 {
     public interface IRoleService
     {
-        Task<IEnumerable<RoleDto>> GetAllAsync();
-        Task<RoleDto> GetByIdAsync(string id);
-        Task<RoleDto> AddAsync(RoleDto RoleDto);
-        Task<RoleDto> Update(RoleDto RoleDto);
-        Task<RoleDto> Delete(string id);
+        Task<ApiResponse<IEnumerable<RoleDto>>> GetAllAsync();
+        Task<ApiResponse<RoleDto>> GetByIdAsync(string id);
+        Task<ApiResponse<RoleDto>> AddAsync(RoleDto RoleDto);
+        Task<ApiResponse<RoleDto>> Update(RoleDto RoleDto);
+        Task<ApiResponse<RoleDto>> Delete(string id);
     }
 }

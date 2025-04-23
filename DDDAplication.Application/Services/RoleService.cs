@@ -3,54 +3,119 @@ using DDDAplication.Application.DTOs;
 using DDDAplication.Application.Interfaces;
 using DDDAplication.Domain.Entities;
 using DDDAplication.Domain.Interfaces;
+using DDDAplication.Infrastructure.Repositories;
 
 namespace DDDAplication.Application.Services
 {
     public class RoleService : IRoleService
     {
-        private readonly IRoleRepository _rolRepository;
+        private readonly IRoleRepository _roleRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        public RoleService(IRoleRepository rolRepository, IMapper mapper)
+        public RoleService(IRoleRepository roleRepository, IUserRepository userRepository, IUserService userService, IMapper mapper)
         {
-            _rolRepository = rolRepository;
+            _roleRepository = roleRepository;
+            _userRepository = userRepository;
+            _userService = userService;
             _mapper = mapper;
         }
 
-        public async Task<RoleDto> AddAsync(RoleDto RoleDto)
+        public async Task<ApiResponse<RoleDto>> AddAsync(RoleDto roleDto)
         {
-            if (RoleDto == null) throw new ArgumentNullException(nameof(RoleDto));
+            if (roleDto == null)
+            {
+                return ApiResponse<RoleDto>.CreateErrorResponse("Role data cannot be null.");
+            }
 
-            var rol = _mapper.Map<Role>(RoleDto); // Map DTO to Domain entity
-            var createdRole = await _rolRepository.AddAsync(rol);
-            return _mapper.Map<RoleDto>(createdRole); // Map back to DTO for returning
+            try
+            {
+                var roleEntity = _mapper.Map<Role>(roleDto);
+
+                var createdRole = await _roleRepository.AddAsync(roleEntity);
+
+                var createdRoleDto = _mapper.Map<RoleDto>(createdRole);
+
+                return ApiResponse<RoleDto>.CreateSuccessResponse("Role created successfully.", createdRoleDto);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<RoleDto>.CreateErrorResponse($"Error creating role: {ex.Message}");
+            }
         }
 
-        public async Task<RoleDto> Delete(string id)
+
+        public async Task<ApiResponse<RoleDto>> GetByIdAsync(string id)
         {
-            var deletedRole = await _rolRepository.DeleteAsync(id);
-            return _mapper.Map<RoleDto>(deletedRole);
+            var role = await _roleRepository.GetByIdAsync(id);
+            if (role == null)
+            {
+                return ApiResponse<RoleDto>.CreateErrorResponse($"Role with id {id} not found.");
+            }
+
+            var roleDto = _mapper.Map<RoleDto>(role);
+            return ApiResponse<RoleDto>.CreateSuccessResponse("Role retrieved successfully.", roleDto);
         }
 
-        public async Task<IEnumerable<RoleDto>> GetAllAsync()
+
+        public async Task<ApiResponse<RoleDto>> Delete(string id)
         {
-            var roles = await _rolRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<RoleDto>>(roles); // Map to DTOs
+
+            if (string.IsNullOrEmpty(id))
+            {
+                return ApiResponse<RoleDto>.CreateErrorResponse("Role ID is required.");
+            }
+            var role = await _roleRepository.GetByIdAsync(id);
+            if (role == null)
+            {
+                return ApiResponse<RoleDto>.CreateErrorResponse($"Role with id {id} not found.");
+            }
+
+            await _roleRepository.DeleteAsync(id);
+
+            var roleDto = _mapper.Map<RoleDto>(role);
+
+            return ApiResponse<RoleDto>.CreateSuccessResponse("Role deleted successfully.", roleDto);
         }
 
-        public async Task<RoleDto> GetByIdAsync(string id)
+
+        public async Task<ApiResponse<IEnumerable<RoleDto>>> GetAllAsync()
         {
-            var role = await _rolRepository.GetByIdAsync(id);
-            return _mapper.Map<RoleDto>(role); // Map to DTO
+            var roles = await _roleRepository.GetAllAsync();
+
+            if (roles == null || !roles.Any())
+            {
+                return ApiResponse<IEnumerable<RoleDto>>.CreateErrorResponse("No roles found.");
+            }
+
+            var roleDtos = _mapper.Map<IEnumerable<RoleDto>>(roles);
+
+            return ApiResponse<IEnumerable<RoleDto>>.CreateSuccessResponse("Role retrieved successfully.", roleDtos);
         }
 
-        public async Task<RoleDto> Update(RoleDto RoleDto)
-        {
-            if (RoleDto == null) throw new ArgumentNullException(nameof(RoleDto));
 
-            var rol = _mapper.Map<Role>(RoleDto); // Map DTO to Domain entity
-            var updatedRole = await _rolRepository.UpdateAsync(rol);
-            return _mapper.Map<RoleDto>(updatedRole); // Map back to DTO for returning
+        public async Task<ApiResponse<RoleDto>> Update(RoleDto roleDto)
+        {
+            if (roleDto == null)
+            {
+                return ApiResponse<RoleDto>.CreateErrorResponse("Role data cannot be null.");
+            }
+
+            var role = await _roleRepository.GetByIdAsync(roleDto.Id.ToString());
+            if (role == null)
+            {
+                return ApiResponse<RoleDto>.CreateErrorResponse($"Role with id {roleDto.Id} not found.");
+            }
+
+            _mapper.Map(roleDto, role);
+
+            await _roleRepository.UpdateAsync(role);
+
+            return ApiResponse<RoleDto>.CreateSuccessResponse("Role updated successfully.", roleDto);
         }
+      
+
+
     }
 }

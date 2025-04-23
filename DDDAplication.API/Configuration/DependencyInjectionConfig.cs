@@ -5,6 +5,10 @@ namespace DDDAplication.API.Configuration
 {
     public static class DependencyInjectionConfig
     {
+        /// <summary>
+        /// Automatically registers all services defined in the DDDAplication.Application and DDDAplication.Infrastructure assemblies 
+        /// into the dependency injection container.
+        /// </summary>
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
 

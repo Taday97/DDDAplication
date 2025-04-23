@@ -12,6 +12,9 @@ namespace DDDAplication.Application.Validators
     {
         public LoginModelDtoValidator()
         {
+            RuleFor(x => x)
+               .NotNull().WithMessage("LoginModelDto cannot be null.");
+
             RuleFor(x => x.Username)
                 .NotEmpty().WithMessage("Username is required.");
 

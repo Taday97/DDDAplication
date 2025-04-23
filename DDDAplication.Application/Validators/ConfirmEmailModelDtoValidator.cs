@@ -12,9 +12,9 @@ namespace DDDAplication.Application.Validators
     {
         public ConfirmEmailModelDtoValidator()
         {
-            RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("UserId is required.");
-
+            RuleFor(x => x.Email)
+                .EmailAddress().WithMessage("Invalid email format.")
+                .NotEmpty().WithMessage("Email is required.");
             RuleFor(x => x.Token)
                 .NotEmpty().WithMessage("Token is required.");
         }

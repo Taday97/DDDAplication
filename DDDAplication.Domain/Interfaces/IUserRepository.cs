@@ -15,5 +15,7 @@ namespace DDDAplication.Domain.Interfaces
 
         Task<ApplicationUser> UpdateAsync(ApplicationUser user);
         Task<ApplicationUser> DeleteAsync(string id);
+        Task<bool> AssignRolesToUserAsync(ApplicationUser user, IEnumerable<Role> rolesEntities);
+        Task<bool> RemoveRolesFromUserAsync(ApplicationUser user, IEnumerable<Role> rolesEntities);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using DDDAplication.Domain.Entities;
 using DDDAplication.Domain.Interfaces;
 using DDDAplication.Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace DDDAplication.Infrastructure.Repositories
@@ -8,10 +9,12 @@ namespace DDDAplication.Infrastructure.Repositories
     public class UserRepository : IUserRepository
     {
         private readonly AppDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public UserRepository(AppDbContext context)
+        public UserRepository(AppDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<ApplicationUser> GetByIdAsync(string id)
@@ -63,6 +66,44 @@ namespace DDDAplication.Infrastructure.Repositories
             return user;
         }
 
-        
+        public async Task<bool> AssignRolesToUserAsync(ApplicationUser user, IEnumerable<Role> roles)
+        {
+            try
+            {
+                foreach (var role in roles)
+                {
+                    if (!await _userManager.IsInRoleAsync(user, role.Name))
+                    {
+                        await _userManager.AddToRoleAsync(user, role.Name);
+                    }
+                }
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+
+        public async Task<bool> RemoveRolesFromUserAsync(ApplicationUser user, IEnumerable<Role> roles)
+        {
+            try
+            {
+                foreach (var role in roles)
+                {
+                    if (await _userManager.IsInRoleAsync(user, role.Name))
+                    {
+                        await _userManager.RemoveFromRoleAsync(user, role.Name);
+                    }
+                }
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
     }
 }

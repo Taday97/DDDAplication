@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace DDDAplication.Application.DTOs
 {
-    public class ConfirmEmailModelDto
+    public class RefreshTokenModelDto
     {
         public string Token { get; set; }
-        public string Email { get; set; }
     }
 }

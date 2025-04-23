@@ -12,13 +12,14 @@ namespace DDDAplication.Application.Validators
     {
         public RoleDtoValidator()
         {
+            RuleFor(x => x.Id)
+                .NotEmpty().When(dto => !string.IsNullOrEmpty(dto.Id)).WithMessage("Role ID cannot be empty.")
+                .Must((dto, id) => id == dto.Id).When(dto => !string.IsNullOrEmpty(dto.Id)).WithMessage("Role ID in request body does not match the ID in the URL.");
+
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Name is required.")
                 .Length(3, 50).WithMessage("Name must be between 3 and 50 characters.");
 
-            RuleFor(x => x.NormalizedName)
-                .NotEmpty().WithMessage("NormalizedName is required.")
-                .Length(3, 50).WithMessage("NormalizedName must be between 3 and 50 characters.");
         }
     }
 

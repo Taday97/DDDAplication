@@ -9,7 +9,12 @@ namespace DDDAplication.Application.Profiles
         public ApplicationProfile()
         {
             CreateMap<ApplicationUser, UserDto>().ReverseMap();
+
             CreateMap<Role, RoleDto>().ReverseMap();
+
+            CreateMap<ApplicationUser, UserLoginResponseDto>()
+           .ForMember(dest => dest.Roles, opt => opt.Ignore());
+
         }
     }
 }

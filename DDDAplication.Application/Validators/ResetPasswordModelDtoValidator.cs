@@ -12,6 +12,9 @@ namespace DDDAplication.Application.Validators
     {
         public ResetPasswordModelDtoValidator()
         {
+            RuleFor(x => x)
+               .NotNull().WithMessage("ResetPasswordModelDto cannot be null.");
+
             RuleFor(x => x.Username)
                 .NotEmpty().WithMessage("Username is required.");
 

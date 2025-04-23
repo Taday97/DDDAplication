@@ -9,8 +9,8 @@ namespace DDDAplication.Api.IntegrationTests.Helper
         {
             var registerModel = new
             {
-                Username =$"testuser{Guid.NewGuid()}",
-                Email = "testuser@example.com",
+                Username = $"testuser{Guid.NewGuid()}",
+                Email = $"testuser{Guid.NewGuid()}@example.com",
                 Password = "Test@123"
             };
 

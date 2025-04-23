@@ -2,6 +2,7 @@
 using DDDAplication.Domain.Interfaces;
 using DDDAplication.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace DDDAplication.Infrastructure.Repositories
 {
@@ -48,7 +49,6 @@ namespace DDDAplication.Infrastructure.Repositories
             return await _context.Roles.FindAsync(id);
         }
 
-        // Update an existing role
         public async Task<Role> UpdateAsync(Role role)
         {
             var existingRole = await _context.Roles.FindAsync(role.Id);
@@ -60,6 +60,17 @@ namespace DDDAplication.Infrastructure.Repositories
             _context.Entry(existingRole).CurrentValues.SetValues(role);
             await _context.SaveChangesAsync();
             return existingRole;
+        }
+        public async Task<IEnumerable<Role>> GetRolesAsync(Expression<Func<Role, bool>> filter = null)
+        {
+            IQueryable<Role> query = _context.Roles;
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            return await query.ToListAsync();
         }
     }
 }

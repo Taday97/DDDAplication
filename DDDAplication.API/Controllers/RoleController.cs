@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DDDAplication.Application.DTOs;
 using DDDAplication.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DDDAplication.API.Controllers
@@ -9,83 +10,99 @@ namespace DDDAplication.API.Controllers
     [Route("api/[controller]")]
     public class RoleController : ControllerBase
     {
-        private readonly IRoleService _rolService;
+        private readonly IRoleService _roleService;
         private readonly IMapper _mapper;
 
-        public RoleController(IRoleService rolService, IMapper mapper)
+        public RoleController(IRoleService roleService, IMapper mapper)
         {
-            _rolService = rolService;
+            _roleService = roleService;
             _mapper = mapper;
         }
 
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> CreateRole([FromBody] RoleDto roleDto)
+        {
+            if (roleDto == null)
+                return BadRequest("Role data cannot be null.");
+
+            var response = await _roleService.AddAsync(roleDto);
+
+            if (!response.Success)
+                return BadRequest(response.Message);
+
+            return CreatedAtAction(nameof(GetRoleById), new { id = response.Data.Id }, response.Data);
+        }
+
+
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllRoles()
         {
-            var roles = await _rolService.GetAllAsync();
-            return Ok(roles);
+            var response = await _roleService.GetAllAsync();
+
+            if (!response.Success)
+                return NotFound(response.Message);
+
+
+            return Ok(response);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRoleById(string id)
         {
             if (string.IsNullOrEmpty(id))
             {
-                return BadRequest(new { Message = "Role ID is required." });
+                return BadRequest("Role ID is required.");  
             }
-            var role = await _rolService.GetByIdAsync(id);
-            if (role == null)
-            {
-                return NotFound(new { Message = $"Role with ID {id} not found." });
-            }
-            return Ok(role);
+            var response = await _roleService.GetByIdAsync(id);
+
+            if (!response.Success)
+                return NotFound(response.Message);
+
+            return Ok(response.Data);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateRole([FromBody] RoleDto rolCreateDto)
-        {
-            if (rolCreateDto == null)
-            {
-                return BadRequest(new { Message = "Role data is required." });
-            }
 
-            var createdRole = await _rolService.AddAsync(rolCreateDto);
-            return CreatedAtAction(nameof(GetRoleById), new { id = createdRole.Id }, createdRole);
-        }
-
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRole(string id, [FromBody] RoleDto rolUpdateDto)
+        public async Task<IActionResult> UpdateRole(string id, [FromBody] RoleDto dto)
         {
-            if (rolUpdateDto == null)
+            if (dto == null)
             {
-                return BadRequest(new { Message = "Role data is required." });
+                return BadRequest("Role data cannot be null.");
+            }
+            if (dto.Id != id)
+            {
+                return BadRequest("Role ID in the request body does not match the ID in the URL.");
             }
 
-            if (id != rolUpdateDto.Id)
-            {
-                return BadRequest(new { Message = "The ID in the URL does not match the ID in the request body." });
-            }
-
-            var existingRole = await _rolService.GetByIdAsync(id);
-            if (existingRole == null)
-            {
-                return NotFound(new { Message = $"Role with ID {id} not found." });
-            }
-
-            var updatedRole = await _rolService.Update(rolUpdateDto);
-            return Ok(updatedRole);
+            dto.Id = id;
+            var response = await _roleService.Update(dto);
+            if (!response.Success)
+                return BadRequest(response.Message);
+            return Ok(response);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRole(string id)
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{roleId}")]
+        public async Task<IActionResult> DeleteRole(string roleId)
         {
-            var existingRole = await _rolService.GetByIdAsync(id);
-            if (existingRole == null)
+            if (string.IsNullOrEmpty(roleId))
             {
-                return NotFound(new { Message = $"Role with ID {id} not found." });
+                var errorResponse = ApiResponse<RoleDto>.CreateErrorResponse("Role ID is required.");
+                return BadRequest(errorResponse.Message);  
             }
 
-            var deletedRole = await _rolService.Delete(id);
-            return Ok(deletedRole);
+            var response = await _roleService.Delete(roleId);
+
+            if (!response.Success)
+                return NotFound(response.Message);
+            return Ok(response);
         }
+
+
     }
 }

@@ -12,6 +12,9 @@ namespace DDDAplication.Application.Validators
     {
         public SendResetLinkModelDtoValidator()
         {
+            RuleFor(x => x)
+            .NotNull().WithMessage("SendResetLinkModelDto cannot be null.");
+           
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email is required.")
                 .EmailAddress().WithMessage("Invalid email format.");
