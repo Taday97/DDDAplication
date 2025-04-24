@@ -30,11 +30,11 @@ namespace DDDAplication.Infrastructure.Helpers
                 }
 
                 var claims = new[]
-                {
-            new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-        };
+                {    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                     new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                
+                };
 
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
