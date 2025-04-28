@@ -1,7 +1,7 @@
-﻿using DDDAplication.Application.DTOs;
+﻿using DDDAplication.Application.DTOs.Auth;
 using FluentValidation;
 
-namespace DDDAplication.Application.Validators
+namespace DDDAplication.Application.Validators.Auth
 {
     public class RegisterModelDtoValidator : AbstractValidator<RegisterModelDto>
     {

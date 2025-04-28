@@ -1,4 +1,4 @@
-﻿using DDDAplication.Application.DTOs;
+﻿using DDDAplication.Application.DTOs.Auth;
 using DDDAplication.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -49,6 +49,7 @@ namespace DDDAplication.API.Controllers
             return Ok(response.Data);
         }
 
+       
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenModelDto model)
         {

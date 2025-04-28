@@ -2,9 +2,11 @@ using DDDAplication.API.Configuration;
 using DDDAplication.API.Extensions;
 using DDDAplication.API.Middleware;
 using DDDAplication.Application;
+using DDDAplication.Application.Validators;
 using DDDAplication.Domain.Entities;
 using DDDAplication.Infrastructure;
 using DDDAplication.Infrastructure.Data;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +14,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using System.Security.Claims;
 using System.Text;
 
 namespace DDDAplication.API
@@ -60,14 +63,15 @@ namespace DDDAplication.API
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtSettings["Issuer"],
                     ValidAudience = jwtSettings["Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? throw new InvalidOperationException("Secret key is not configured.")))
-
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? throw new InvalidOperationException("Secret key is not configured."))),
+                    RoleClaimType = ClaimTypes.Role,
                 };
             });
 
             builder.Services.AddAuthorization();
 
             builder.Services.AddFluentValidationServices();
+
 
             builder.Services.AddControllers(options =>
             {

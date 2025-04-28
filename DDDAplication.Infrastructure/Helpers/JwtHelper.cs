@@ -1,115 +1,94 @@
 ﻿using DDDAplication.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace DDDAplication.Infrastructure.Helpers
 {
-    public static class JwtHelper
+    public class JwtService
     {
-        public static string GenerateToken(ApplicationUser user, IConfiguration configuration)
+        private readonly IConfiguration _configuration;
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public JwtService(IConfiguration configuration, UserManager<ApplicationUser> userManager)
         {
-            try
-            {
-                var jwtSettings = configuration.GetSection("JwtSettings");
-                var secretKey = jwtSettings["Secret"];
-                var issuer = jwtSettings["Issuer"];
-                var audience = jwtSettings["Audience"];
-                var tokenLifetime = int.Parse(jwtSettings["TokenLifetimeMinutes"]);
-
-                if (string.IsNullOrWhiteSpace(secretKey) || string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience))
-                {
-                    throw new Exception("JWT configuration is invalid.");
-                }
-
-                var claims = new[]
-                {    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                     new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                
-                };
-
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-                var token = new JwtSecurityToken(
-                    issuer: issuer,
-                    audience: audience,
-                    claims: claims,
-                    expires: DateTime.UtcNow.AddMinutes(tokenLifetime),
-                    signingCredentials: creds
-                );
-
-                return new JwtSecurityTokenHandler().WriteToken(token);
-            }
-            catch (Exception ex)
-            {
-                // Log the exception or handle it as needed
-                throw new Exception($"An error occurred while generating the JWT token: {ex.Message}", ex);
-            }
+            _configuration = configuration;
+            _userManager = userManager;
         }
-        public static string GenerateRoleToken(Role rol, IConfiguration configuration)
+
+        public async Task<string> GenerateTokenAsync(ApplicationUser user)
         {
-            try
-            {
-                // Read JWT settings from configuration
-                var jwtSettings = configuration.GetSection("JwtSettings");
-                var secretKey = jwtSettings["Secret"];
-                var issuer = jwtSettings["Issuer"];
-                var audience = jwtSettings["Audience"];
-                var tokenLifetime = int.Parse(jwtSettings["TokenLifetimeMinutes"]);
+            var jwtSettings = _configuration.GetSection("JwtSettings");
+            var secretKey = jwtSettings["Secret"];
+            var issuer = jwtSettings["Issuer"];
+            var audience = jwtSettings["Audience"];
+            var tokenLifetime = int.Parse(jwtSettings["TokenLifetimeMinutes"]);
 
-                // Validate settings
-                if (string.IsNullOrWhiteSpace(secretKey) || string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience))
-                {
-                    throw new Exception("JWT configuration is invalid.");
-                }
+            var roles = await _userManager.GetRolesAsync(user);
 
-                // Define claims
-                var claims = new[]
-                {
-            new Claim(JwtRegisteredClaimNames.Sub, rol.Name), // The role name
+            var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.UserName),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.Name, rol.Name) // Name of the role
         };
 
-                // Create security key and credentials
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-                // Create token
-                var token = new JwtSecurityToken(
-                    issuer: issuer,
-                    audience: audience,
-                    claims: claims,
-                    expires: DateTime.UtcNow.AddMinutes(tokenLifetime),
-                    signingCredentials: creds
-                );
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-                // Return the serialized token
-                return new JwtSecurityTokenHandler().WriteToken(token);
-            }
-            catch (Exception ex)
-            {
-                // Log the exception or handle it as needed
-                throw new Exception($"An error occurred while generating the Role JWT token: {ex.Message}", ex);
-            }
+            var token = new JwtSecurityToken(
+                issuer: issuer,
+                audience: audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(tokenLifetime),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public static ClaimsPrincipal GetPrincipalFromExpiredToken(string token, IConfiguration configuration)
+        public string GenerateRoleToken(Role rol)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(configuration["JwtSettings:Secret"]);
+            var jwtSettings = _configuration.GetSection("JwtSettings");
+            var secretKey = jwtSettings["Secret"];
+            var issuer = jwtSettings["Issuer"];
+            var audience = jwtSettings["Audience"];
+            var tokenLifetime = int.Parse(jwtSettings["TokenLifetimeMinutes"]);
+
+            var claims = new[]
+            {
+            new Claim(JwtRegisteredClaimNames.Sub, rol.Name),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.Name, rol.Name)
+        };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: issuer,
+                audience: audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(tokenLifetime),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+            var key = Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"]);
 
             try
             {
+                var tokenHandler = new JwtSecurityTokenHandler();
+
                 var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuer = false,
@@ -120,12 +99,12 @@ namespace DDDAplication.Infrastructure.Helpers
 
                 return principal;
             }
-            catch (Exception)
+            catch
             {
                 return null;
             }
         }
-
     }
+
 }
 

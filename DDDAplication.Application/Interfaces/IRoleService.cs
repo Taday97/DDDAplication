@@ -1,4 +1,5 @@
-﻿using DDDAplication.Application.DTOs;
+﻿using DDDAplication.Application.DTOs.ApiResponse;
+using DDDAplication.Application.DTOs.Rol;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +12,8 @@ namespace DDDAplication.Application.Interfaces
     {
         Task<ApiResponse<IEnumerable<RoleDto>>> GetAllAsync();
         Task<ApiResponse<RoleDto>> GetByIdAsync(string id);
-        Task<ApiResponse<RoleDto>> AddAsync(RoleDto RoleDto);
-        Task<ApiResponse<RoleDto>> Update(RoleDto RoleDto);
+        Task<ApiResponse<RoleDto>> AddAsync(CreateRoleDto RoleDto);
+        Task<ApiResponse<RoleDto>> Update(EditRoleDto RoleDto);
         Task<ApiResponse<RoleDto>> Delete(string id);
     }
 }

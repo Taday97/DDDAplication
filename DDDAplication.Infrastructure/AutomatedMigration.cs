@@ -1,6 +1,7 @@
 ﻿using DDDAplication.Domain.Entities;
 using DDDAplication.Domain.Enums;
 using DDDAplication.Infrastructure.Data;
+using DDDAplication.Infrastructure.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -25,7 +26,8 @@ namespace DDDAplication.Infrastructure
             var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = services.GetRequiredService<RoleManager<Role>>();
             var logger = services.GetRequiredService<ILogger<AppDbContextSeed>>();
-            await AppDbContextSeed.SeedDatabaseAsync(context, userManager, roleManager, configuration, logger); 
+            var jwtService = services.GetRequiredService<JwtService>();
+            await AppDbContextSeed.SeedDatabaseAsync(context, userManager, roleManager, configuration, logger, jwtService); 
         }
     }
 }

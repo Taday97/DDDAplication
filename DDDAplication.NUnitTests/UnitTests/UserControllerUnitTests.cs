@@ -1,5 +1,4 @@
 ﻿using DDDAplication.API.Controllers;
-using DDDAplication.Application.DTOs;
 using DDDAplication.Application.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +6,8 @@ using Moq;
 using NUnit.Framework;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using DDDAplication.Application.DTOs.ApiResponse;
+using DDDAplication.Application.DTOs.User;
 
 namespace DDDAplication.Tests.Controllers
 {
@@ -45,9 +46,9 @@ namespace DDDAplication.Tests.Controllers
         {
             // Arrange
             var userId = "123";
-            var userDto = new UserDto { Id = userId, UserName = "Test User" };
+            var userDto = new UserPorfileDto { Id = userId, UserName = "Test User" };
 
-            var expectedResponse = ApiResponse<UserDto>.CreateSuccessResponse("User profile retrieved successfully.", userDto);
+            var expectedResponse = ApiResponse<UserPorfileDto>.CreateSuccessResponse("User profile retrieved successfully.", userDto);
 
             _mockUserService.Setup(s => s.GetProfileAsync(userId))
                 .ReturnsAsync(expectedResponse);
@@ -71,7 +72,7 @@ namespace DDDAplication.Tests.Controllers
             }, "TestAuth"));
 
             _mockUserService.Setup(s => s.GetProfileAsync(fakeUserId))
-                .ReturnsAsync(ApiResponse<UserDto>.CreateErrorResponse("User not found."));
+                .ReturnsAsync(ApiResponse<UserPorfileDto>.CreateErrorResponse("User not found."));
 
             var controller = new UserController(_mockUserService.Object);
             controller.ControllerContext = new ControllerContext
@@ -156,7 +157,7 @@ namespace DDDAplication.Tests.Controllers
         {
             // Arrange
             var userId = "123";
-            var expectedResponse = ApiResponse<UserDto>.CreateErrorResponse("User with id 123 not found.");
+            var expectedResponse = ApiResponse<UserPorfileDto>.CreateErrorResponse("User with id 123 not found.");
 
             _mockUserService.Setup(s => s.GetByIdAsync(userId))
                 .ReturnsAsync(expectedResponse);
@@ -259,7 +260,6 @@ namespace DDDAplication.Tests.Controllers
                 Id = userId,
                 UserName = "Updated User",
                 Email = "updateduser@example.com",
-                EmailConfirmed = true
             };
 
             var expectedResponse = ApiResponse<UserDto>.CreateSuccessResponse("Profile updated successfully.", userDto);
@@ -401,8 +401,8 @@ namespace DDDAplication.Tests.Controllers
         {
             // Arrange
             var validUserId = "123";
-            var userDto = new UserDto { Id = validUserId, Email = "admin@gmail.com" };
-            var expectedResponse = ApiResponse<UserDto>.CreateSuccessResponse("User found successfully.", userDto);
+            var userDto = new UserPorfileDto { Id = validUserId, Email = "admin@gmail.com" };
+            var expectedResponse = ApiResponse<UserPorfileDto>.CreateSuccessResponse("User found successfully.", userDto);
 
             _mockUserService.Setup(s => s.GetByIdAsync(validUserId))
                 .ReturnsAsync(expectedResponse);
@@ -411,9 +411,9 @@ namespace DDDAplication.Tests.Controllers
             var result = await _controller.GetUserById(validUserId);
 
             // Assert
-            result.Should().BeOfType<OkObjectResult>();  // Esperamos OkObjectResult
+            result.Should().BeOfType<OkObjectResult>();  
             var okResult = result as OkObjectResult;
-            okResult!.Value.Should().BeEquivalentTo(expectedResponse.Data);  // Verificamos que los datos coinciden
+            okResult!.Value.Should().BeEquivalentTo(expectedResponse.Data); 
         }
 
         [Test]

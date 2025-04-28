@@ -1,6 +1,6 @@
 ﻿using FluentValidation.AspNetCore;
 using FluentValidation;
-using DDDAplication.Application.Validators;
+using DDDAplication.Application.Validators.Auth;
 
 namespace DDDAplication.API.Configuration
 {
@@ -15,7 +15,6 @@ namespace DDDAplication.API.Configuration
 
             var domainAssembly = typeof(RegisterModelDtoValidator).Assembly;
             services.AddValidatorsFromAssembly(domainAssembly);
-
 
             services.AddFluentValidationAutoValidation();
             services.AddFluentValidationClientsideAdapters();

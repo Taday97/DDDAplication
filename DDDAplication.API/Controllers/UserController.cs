@@ -1,5 +1,7 @@
 ﻿using Azure;
-using DDDAplication.Application.DTOs;
+using DDDAplication.Application.DTOs.ApiResponse;
+using DDDAplication.Application.DTOs.Rol;
+using DDDAplication.Application.DTOs.User;
 using DDDAplication.Application.Interfaces;
 using DDDAplication.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -51,7 +53,6 @@ namespace DDDAplication.API.Controllers
 
             return Ok(response.Data);
         }
-
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
@@ -62,7 +63,6 @@ namespace DDDAplication.API.Controllers
 
             return Ok(response.Data);
         }
-
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(string id)
@@ -76,8 +76,6 @@ namespace DDDAplication.API.Controllers
 
             return Ok(response.Data);
         }
-
-
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UserDto dto)
@@ -115,38 +113,6 @@ namespace DDDAplication.API.Controllers
             return Ok(response);
         }
 
-
-
-        [HttpPost("{userId}/roles")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AssignRolesToUser(string userId, [FromBody] List<string> roles)
-        {
-            if (roles == null || !roles.Any())
-                return BadRequest("Users list cannot be empty.");
-
-            var response = await _userService.AssignRolesToUserAsync(userId, roles);
-
-            if (!response.Success)
-                return BadRequest(response.Message);
-
-            return Ok(response);
-        }
-
-        [HttpDelete("{userId}/roles")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> RemoveRolesFromUser(string userId, [FromBody] List<string> roles)
-        {
-            if (roles == null || !roles.Any())
-                return BadRequest("Users list cannot be empty.");
-
-            var response = await _userService.RemoveRolesFromUserAsync(userId, roles);
-
-            if (!response.Success)
-                return BadRequest(response.Message);
-
-            return Ok(response);
-        }
-
         [HttpGet("{userId}/roles")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUserRoles(string userId)
@@ -161,5 +127,37 @@ namespace DDDAplication.API.Controllers
 
             return Ok(response);
         }
+
+        [HttpPost("{userId}/roles")]
+        [Authorize(Roles = "Admin,Developer")]
+        public async Task<IActionResult> AssignRolesToUser(string userId, [FromBody] List<string> roles)
+        {
+            if (roles == null || !roles.Any())
+                return BadRequest("Users list cannot be empty.");
+
+            var response = await _userService.AssignRolesToUserAsync(userId, roles);
+
+            if (!response.Success)
+                return BadRequest(response.Message);
+
+            return Ok(response);
+        }
+
+        [HttpDelete("{userId}/roles")]
+        [Authorize(Roles = "Admin,Developer")]
+        public async Task<IActionResult> RemoveRolesFromUser(string userId, [FromBody] List<string> roles)
+        {
+            if (roles == null || !roles.Any())
+                return BadRequest("Users list cannot be empty.");
+
+            var response = await _userService.RemoveRolesFromUserAsync(userId, roles);
+
+            if (!response.Success)
+                return BadRequest(response.Message);
+
+            return Ok(response);
+        }
+
+
     }
 }

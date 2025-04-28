@@ -1,4 +1,4 @@
-﻿using DDDAplication.Application.DTOs;
+﻿using DDDAplication.Application.DTOs.Rol;
 using FluentValidation;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DDDAplication.Application.Validators
+namespace DDDAplication.Application.Validators.Role
 {
     public class RoleDtoValidator : AbstractValidator<RoleDto>
     {

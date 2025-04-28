@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DDDAplication.Application.DTOs
+namespace DDDAplication.Application.DTOs.User
 {
     public class UserLoginResponseDto
     {

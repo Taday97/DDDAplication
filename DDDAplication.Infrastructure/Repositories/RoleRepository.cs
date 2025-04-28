@@ -15,7 +15,47 @@ namespace DDDAplication.Infrastructure.Repositories
             _context = context;
         }
 
-        // Add a new role to the database
+        public async Task<Role?> GetByIdAsync(Guid id, bool asNoTracking = true)
+        {
+            var query = _context.Roles.AsQueryable();
+
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.FirstOrDefaultAsync(r => r.Id == id);
+        }
+
+        public async Task<IEnumerable<Role>> GetRolesAsync(Expression<Func<Role, bool>>? filter = null, bool asNoTracking = true)
+        {
+            IQueryable<Role> query = _context.Roles;
+
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<Role?> FindFirstRoleAsync(Expression<Func<Role, bool>> filter, bool asNoTracking = true)
+        {
+            var query = _context.Roles.AsQueryable();
+
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.FirstOrDefaultAsync(filter);
+        }
+
         public async Task<Role> AddAsync(Role role)
         {
             await _context.Roles.AddAsync(role);
@@ -23,33 +63,7 @@ namespace DDDAplication.Infrastructure.Repositories
             return role;
         }
 
-        // Delete a role from the database
-        public async Task<Role> DeleteAsync(string id)
-        {
-            var role = await _context.Roles.FindAsync(id);
-            if (role == null)
-            {
-                return null;
-            }
-
-            _context.Roles.Remove(role);
-            await _context.SaveChangesAsync();
-            return role;
-        }
-
-        // Get all roles from the database
-        public async Task<IEnumerable<Role>> GetAllAsync()
-        {
-            return await _context.Roles.ToListAsync();
-        }
-
-        // Get a specific role by its ID
-        public async Task<Role> GetByIdAsync(string id)
-        {
-            return await _context.Roles.FindAsync(id);
-        }
-
-        public async Task<Role> UpdateAsync(Role role)
+        public async Task<Role?> UpdateAsync(Role role)
         {
             var existingRole = await _context.Roles.FindAsync(role.Id);
             if (existingRole == null)
@@ -61,16 +75,18 @@ namespace DDDAplication.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return existingRole;
         }
-        public async Task<IEnumerable<Role>> GetRolesAsync(Expression<Func<Role, bool>> filter = null)
-        {
-            IQueryable<Role> query = _context.Roles;
 
-            if (filter != null)
+        public async Task<Role?> DeleteAsync(Guid id)
+        {
+            var role = await _context.Roles.FindAsync(id);
+            if (role == null)
             {
-                query = query.Where(filter);
+                return null;
             }
 
-            return await query.ToListAsync();
+            _context.Roles.Remove(role);
+            await _context.SaveChangesAsync();
+            return role;
         }
     }
 }

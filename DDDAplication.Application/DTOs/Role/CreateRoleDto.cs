@@ -1,11 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DDDAplication.Application.DTOs
+namespace DDDAplication.Application.DTOs.Rol
 {
-    public class RoleDto
+    public class CreateRoleDto
     {
-        [Key]
-        public string Id { get; set; }
         [Required]
         public string Name { get; set; }
     }

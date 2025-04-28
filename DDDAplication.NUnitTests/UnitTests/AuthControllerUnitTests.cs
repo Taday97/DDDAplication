@@ -1,7 +1,11 @@
 ﻿using Azure;
 using DDDAplication.API.Controllers;
-using DDDAplication.Application.DTOs;
+using DDDAplication.Application.DTOs.ApiResponse;
+using DDDAplication.Application.DTOs.Auth;
+using DDDAplication.Application.DTOs.User;
 using DDDAplication.Application.Interfaces;
+using DDDAplication.Application.Services;
+using DDDAplication.Domain.Entities;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -363,7 +367,7 @@ namespace DDDAplication.Tests.Controllers
             };
 
             _mockUserService.Setup(x => x.GetProfileAsync(userId))
-                .ReturnsAsync(ApiResponse<UserDto>.CreateErrorResponse("User not found."));
+                .ReturnsAsync(ApiResponse<UserPorfileDto>.CreateErrorResponse("User not found."));
 
             var controller = new AuthController(_mockUserService.Object)
             {
@@ -393,12 +397,12 @@ namespace DDDAplication.Tests.Controllers
                 User = claimsPrincipal
             };
 
-            var expectedProfile = new UserDto
+            var expectedProfile = new UserPorfileDto
             {
                 UserName = "testuser",
                 Email = "test@example.com",
             };
-            var expectedResponse = ApiResponse<UserDto>.CreateSuccessResponse("Profile retrieved successfully.", expectedProfile); ;
+            var expectedResponse = ApiResponse<UserPorfileDto>.CreateSuccessResponse("Profile retrieved successfully.", expectedProfile); ;
             _mockUserService.Setup(x => x.GetProfileAsync(userId))
                 .ReturnsAsync(expectedResponse);
 
@@ -559,6 +563,129 @@ namespace DDDAplication.Tests.Controllers
         }
 
         [Test]
+        public async Task ResetPassword_ValidToken_ReturnsOk()
+        {
+            // Arrange
+            var model = new ResetPasswordModelDto
+            {
+                Username = "existinguser",
+                Token = "valid-token",
+                NewPassword = "NewPassword123!"
+            };
+
+            var apiResponse = ApiResponse<string>.CreateSuccessResponse("Password has been reset successfully.");
+
+            _mockUserService.Setup(s => s.ResetPasswordAsync(It.Is<ResetPasswordModelDto>(m => m.Token == model.Token)))
+                            .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _controller.ResetPassword(model);
+
+            // Assert
+            result.Should().BeOfType<OkObjectResult>();
+            var okResult = result as OkObjectResult;
+            okResult!.Value.Should().Be("Password has been reset successfully.");
+        }
+        [Test]
+        public async Task ResetPassword_InvalidToken_ReturnsBadRequest()
+        {
+            // Arrange
+            var model = new ResetPasswordModelDto
+            {
+                Username = "existinguser",
+                Token = "invalid-token",
+                NewPassword = "NewPassword123!"
+            };
+
+            var apiResponse = ApiResponse<string>.CreateErrorResponse("Invalid token.");
+
+            _mockUserService.Setup(s => s.ResetPasswordAsync(It.Is<ResetPasswordModelDto>(m => m.Token == model.Token)))
+                            .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _controller.ResetPassword(model);
+
+            // Assert
+            result.Should().BeOfType<BadRequestObjectResult>();
+            var badRequestResult = result as BadRequestObjectResult;
+            var json = JObject.FromObject(badRequestResult!.Value!);
+            json["message"]!.ToString().Should().Be("Invalid token.");
+        }
+        [Test]
+        public async Task ResetPassword_UserNotFound_ReturnsBadRequest()
+        {
+            // Arrange
+            var model = new ResetPasswordModelDto
+            {
+                Username = "nonexistentuser",
+                Token = "valid-token",
+                NewPassword = "NewPassword123!"
+            };
+
+            var apiResponse = ApiResponse<string>.CreateErrorResponse("User not found.");
+
+            _mockUserService.Setup(s => s.ResetPasswordAsync(It.Is<ResetPasswordModelDto>(m => m.Username == model.Username)))
+                            .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _controller.ResetPassword(model);
+
+            // Assert
+            result.Should().BeOfType<BadRequestObjectResult>();
+            var badRequestResult = result as BadRequestObjectResult;
+            var json = JObject.FromObject(badRequestResult!.Value!);
+            json["message"]!.ToString().Should().Be("User not found.");
+        }
+        [Test]
+        public async Task ResetPassword_FailureOnPasswordReset_ReturnsBadRequestWithErrors()
+        {
+            // Arrange
+            var model = new ResetPasswordModelDto
+            {
+                Username = "existinguser",
+                Token = "valid-token",
+                NewPassword = "NewPassword123!"
+            };
+
+            var apiResponse = ApiResponse<string>.CreateErrorResponse("Password reset failed.", new List<string> { "Token expired." });
+
+            _mockUserService.Setup(s => s.ResetPasswordAsync(It.Is<ResetPasswordModelDto>(m => m.Token == model.Token)))
+                            .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _controller.ResetPassword(model);
+
+            // Assert
+            result.Should().BeOfType<BadRequestObjectResult>();
+            var badRequestResult = result as BadRequestObjectResult;
+            var json = JObject.FromObject(badRequestResult!.Value!);
+            json["message"]!.ToString().Should().Be("Password reset failed.");
+            var errors = json["errors"]!.ToObject<List<string>>();
+            errors!.Should().Contain("Token expired.");
+        }
+        [Test]
+        public async Task ResetPassword_EmptyModel_ReturnsBadRequest()
+        {
+            // Arrange
+            var model = new ResetPasswordModelDto(); 
+
+            var apiResponse = ApiResponse<string>.CreateErrorResponse("ResetPasswordModelDto cannot be null.");
+
+            _mockUserService.Setup(s => s.ResetPasswordAsync(It.IsAny<ResetPasswordModelDto>()))
+                            .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _controller.ResetPassword(model);
+
+            // Assert
+            result.Should().BeOfType<BadRequestObjectResult>();
+            var badRequestResult = result as BadRequestObjectResult;
+            var json = JObject.FromObject(badRequestResult!.Value!);
+            json["message"]!.ToString().Should().Be("ResetPasswordModelDto cannot be null.");
+        }
+
+
+        [Test]
         public async Task ChangePassword_InvalidModelState_ReturnsBadRequest()
         {
             // Arrange
@@ -625,6 +752,90 @@ namespace DDDAplication.Tests.Controllers
             var okResult = result as OkObjectResult;
             okResult!.Value.Should().Be("Password changed successfully.");
         }
+
+        [Test]
+        public async Task ChangePassword_InvalidOldPassword_ReturnsBadRequest()
+        {
+            // Arrange
+            var model = new ChangePasswordModelDto
+            {
+                Username = "existinguser",
+                OldPassword = "wrongOldPassword",
+                NewPassword = "NewPassword123!"
+            };
+
+            var apiResponse = ApiResponse<string>.CreateErrorResponse("Old password is incorrect.");
+
+            var mockUserService = new Mock<IUserService>();
+            mockUserService.Setup(x => x.ChangePasswordAsync(model))
+                .ReturnsAsync(apiResponse);
+
+            var controller = new AuthController(mockUserService.Object);
+
+            // Act
+            var result = await controller.ChangePassword(model);
+
+            // Assert
+            result.Should().BeOfType<BadRequestObjectResult>();
+            var badRequestResult = result as BadRequestObjectResult;
+            badRequestResult!.Value.Should().Be("Old password is incorrect.");
+        }
+        [Test]
+        public async Task ChangePassword_UserNotFound_ReturnsBadRequest()
+        {
+            // Arrange
+            var model = new ChangePasswordModelDto
+            {
+                Username = "nonexistentuser",
+                OldPassword = "OldPass123!",
+                NewPassword = "NewPass123!"
+            };
+
+            var apiResponse = ApiResponse<string>.CreateErrorResponse("User not found.");
+
+            var mockUserService = new Mock<IUserService>();
+            mockUserService.Setup(x => x.ChangePasswordAsync(model))
+                .ReturnsAsync(apiResponse);
+
+            var controller = new AuthController(mockUserService.Object);
+
+            // Act
+            var result = await controller.ChangePassword(model);
+
+            // Assert
+            result.Should().BeOfType<BadRequestObjectResult>();
+            var badRequestResult = result as BadRequestObjectResult;
+            badRequestResult!.Value.Should().Be("User not found.");
+        }
+        [Test]
+        public async Task ChangePassword_Success_ReturnsOk()
+        {
+            // Arrange
+            var model = new ChangePasswordModelDto
+            {
+                Username = "existinguser",
+                OldPassword = "OldPass123!",
+                NewPassword = "NewPassword123!"
+            };
+
+            var apiResponse = ApiResponse<string>.CreateSuccessResponse("Password changed successfully.");
+
+            var mockUserService = new Mock<IUserService>();
+            mockUserService.Setup(x => x.ChangePasswordAsync(model))
+                .ReturnsAsync(apiResponse);
+
+            var controller = new AuthController(mockUserService.Object);
+
+            // Act
+            var result = await controller.ChangePassword(model);
+
+            // Assert
+            result.Should().BeOfType<OkObjectResult>();
+            var okResult = result as OkObjectResult;
+            okResult!.Value.Should().Be("Password changed successfully.");
+        }
+
+
 
     }
 }

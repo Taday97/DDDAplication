@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DDDAplication.API.Controllers;
-using DDDAplication.Application.DTOs;
+using DDDAplication.Application.DTOs.ApiResponse;
+using DDDAplication.Application.DTOs.Rol;
 using DDDAplication.Application.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +27,7 @@ namespace DDDAplication.NUnitTests.UnitTests
         public async Task CreateRole_ReturnsCreatedAtAction_WhenCreationIsSuccessful()
         {
             // Arrange
-            var newRole = new RoleDto { Name = "New Role" };
+            var newRole = new CreateRoleDto { Name = "New Role" };
             var createdRole = new RoleDto { Id = "789", Name = "New Role" };
 
             var expectedResponse = ApiResponse<RoleDto>.CreateSuccessResponse("Role created successfully.", createdRole);
@@ -62,7 +63,7 @@ namespace DDDAplication.NUnitTests.UnitTests
         public async Task CreateRole_ReturnsBadRequest_WhenServiceReturnsFailure()
         {
             // Arrange
-            var roleDto = new RoleDto { Name = "Invalid Role" };
+            var roleDto = new CreateRoleDto { Name = "Invalid Role" };
             var failedResponse = ApiResponse<RoleDto>.CreateErrorResponse("Failed to create role.");
 
             _mockRoleService.Setup(s => s.AddAsync(roleDto))
@@ -82,14 +83,15 @@ namespace DDDAplication.NUnitTests.UnitTests
         public async Task CreateRole_ReturnsCreated_WhenRoleIsSuccessfullyCreated()
         {
             // Arrange
+            var roleCreateDto = new CreateRoleDto { Name = "Admin" };
             var roleDto = new RoleDto { Name = "Admin" };
             var expectedResponse = ApiResponse<RoleDto>.CreateSuccessResponse("Role created successfully.", roleDto);
 
-            _mockRoleService.Setup(s => s.AddAsync(roleDto))
+            _mockRoleService.Setup(s => s.AddAsync(roleCreateDto))
                 .ReturnsAsync(expectedResponse);
 
             // Act
-            var result = await _controller.CreateRole(roleDto);
+            var result = await _controller.CreateRole(roleCreateDto);
 
             // Assert
             result.Should().BeOfType<CreatedAtActionResult>();
@@ -101,7 +103,7 @@ namespace DDDAplication.NUnitTests.UnitTests
         public async Task CreateRole_ReturnsBadRequest_WhenRoleDataIsNull()
         {
             // Arrange
-            RoleDto? roleDto = null;
+            CreateRoleDto? roleDto = null;
 
             // Act
             var result = await _controller.CreateRole(roleDto);
@@ -236,6 +238,11 @@ namespace DDDAplication.NUnitTests.UnitTests
         {
             // Arrange
             var userId = "123";
+            var userEditDto = new EditRoleDto
+            {
+                Id = userId,
+                Name = "Updated Role",
+            };
             var userDto = new RoleDto
             {
                 Id = userId,
@@ -244,11 +251,11 @@ namespace DDDAplication.NUnitTests.UnitTests
 
             var expectedResponse = ApiResponse<RoleDto>.CreateSuccessResponse("Profile updated successfully.", userDto);
 
-            _mockRoleService.Setup(s => s.Update(userDto))
+            _mockRoleService.Setup(s => s.Update(userEditDto))
                 .ReturnsAsync(expectedResponse);
 
             // Act
-            var result = await _controller.UpdateRole(userId, userDto);
+            var result = await _controller.UpdateRole(userId, userEditDto);
 
             // Assert
             result.Should().BeOfType<OkObjectResult>();
@@ -264,6 +271,11 @@ namespace DDDAplication.NUnitTests.UnitTests
         {
             // Arrange
             var userId = "999"; // Rol que no existe
+            var editRoleDto = new EditRoleDto
+            {
+                Id = userId,
+                Name = "Updated Role",
+            };
             var userDto = new RoleDto
             {
                 Id = userId,
@@ -272,11 +284,11 @@ namespace DDDAplication.NUnitTests.UnitTests
 
             var expectedResponse = ApiResponse<RoleDto>.CreateErrorResponse($"Role with id {userId} not found.");
 
-            _mockRoleService.Setup(s => s.Update(userDto))
+            _mockRoleService.Setup(s => s.Update(editRoleDto))
                 .ReturnsAsync(expectedResponse);
 
             // Act
-            var result = await _controller.UpdateRole(userId, userDto);
+            var result = await _controller.UpdateRole(userId, editRoleDto);
 
             // Assert
             result.Should().BeOfType<BadRequestObjectResult>();
@@ -288,10 +300,10 @@ namespace DDDAplication.NUnitTests.UnitTests
         public async Task UpdateRole_ReturnsBadRequest_WhenRoleDataIsNull()
         {
             // Arrange
-            RoleDto? roleDto = null;
+            EditRoleDto? editRoleDto = null;
 
             // Act
-            var result = await _controller.UpdateRole("123", roleDto);
+            var result = await _controller.UpdateRole("123", editRoleDto);
 
             // Assert
             result.Should().BeOfType<BadRequestObjectResult>();
@@ -303,7 +315,7 @@ namespace DDDAplication.NUnitTests.UnitTests
         {
             // Arrange
             var urlId = "123";
-            var dto = new RoleDto { Id = "456", Name = "Updated Role" }; 
+            var dto = new EditRoleDto { Id = "456", Name = "Updated Role" }; 
 
             // Act
             var result = await _controller.UpdateRole(urlId, dto);

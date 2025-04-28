@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DDDAplication.Application.DTOs
+namespace DDDAplication.Application.DTOs.Auth
 {
-    public class LoginResultDto
+    public class RefreshTokenModelDto
     {
+        [Required]
         public string Token { get; set; }
-        public UserLoginResponseDto User { get; set; }
     }
-
 }

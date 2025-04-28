@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using DDDAplication.Application.DTOs;
+using DDDAplication.Application.DTOs.ApiResponse;
+using DDDAplication.Application.DTOs.Rol;
 using DDDAplication.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,23 +19,6 @@ namespace DDDAplication.API.Controllers
             _roleService = roleService;
             _mapper = mapper;
         }
-
-
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-        public async Task<IActionResult> CreateRole([FromBody] RoleDto roleDto)
-        {
-            if (roleDto == null)
-                return BadRequest("Role data cannot be null.");
-
-            var response = await _roleService.AddAsync(roleDto);
-
-            if (!response.Success)
-                return BadRequest(response.Message);
-
-            return CreatedAtAction(nameof(GetRoleById), new { id = response.Data.Id }, response.Data);
-        }
-
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
@@ -67,20 +51,36 @@ namespace DDDAplication.API.Controllers
 
 
         [Authorize(Roles = "Admin")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRole(string id, [FromBody] RoleDto dto)
+        [HttpPost]
+        public async Task<IActionResult> CreateRole([FromBody] CreateRoleDto createRoleDto)
         {
-            if (dto == null)
+            if (createRoleDto == null)
+                return BadRequest("Role data cannot be null.");
+
+            var response = await _roleService.AddAsync(createRoleDto);
+
+            if (!response.Success)
+                return BadRequest(response.Message);
+
+            return CreatedAtAction(nameof(GetRoleById), new { id = response.Data.Id }, response.Data);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateRole(string id, [FromBody] EditRoleDto editRoleDto)
+        {
+
+            if (editRoleDto == null)
             {
                 return BadRequest("Role data cannot be null.");
             }
-            if (dto.Id != id)
+            if (editRoleDto.Id != id)
             {
                 return BadRequest("Role ID in the request body does not match the ID in the URL.");
             }
 
-            dto.Id = id;
-            var response = await _roleService.Update(dto);
+            editRoleDto.Id = id;
+            var response = await _roleService.Update(editRoleDto);
             if (!response.Success)
                 return BadRequest(response.Message);
             return Ok(response);

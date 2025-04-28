@@ -3,6 +3,7 @@ using DDDAplication.Domain.Interfaces;
 using DDDAplication.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace DDDAplication.Infrastructure.Repositories
 {
@@ -16,15 +17,21 @@ namespace DDDAplication.Infrastructure.Repositories
             _context = context;
             _userManager = userManager;
         }
-
-        public async Task<ApplicationUser> GetByIdAsync(string id)
+        public async Task<ApplicationUser> GetByIdAsync(string id, bool asNoTracking = true)
         {
             if (!Guid.TryParse(id, out Guid parsedId))
             {
                 return null;
             }
 
-            return await _context.Users.FirstOrDefaultAsync(l => l.Id == parsedId);
+            IQueryable<ApplicationUser> query = _context.Users;
+
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.FirstOrDefaultAsync(l => l.Id == parsedId);
         }
 
 
@@ -35,9 +42,16 @@ namespace DDDAplication.Infrastructure.Repositories
             return user;
         }
 
-        public async Task<IEnumerable<ApplicationUser>> GetAllAsync()
+        public async Task<IEnumerable<ApplicationUser>> GetAllAsync(bool asNoTracking = true)
         {
-            return await _context.Users.ToListAsync();
+            IQueryable<ApplicationUser> query = _context.Users;
+
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.ToListAsync();
         }
 
         public async Task<ApplicationUser> UpdateAsync(ApplicationUser user)
@@ -104,6 +118,33 @@ namespace DDDAplication.Infrastructure.Repositories
                 return false;
             }
         }
+        public async Task<IEnumerable<ApplicationUser>> GetUsersAsync(Expression<Func<ApplicationUser, bool>> filter = null, bool asNoTracking = true)
+        {
+            IQueryable<ApplicationUser> query = _userManager.Users;
 
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<ApplicationUser?> FindFirstUserAsync(Expression<Func<ApplicationUser, bool>> filter, bool asNoTracking = true)
+        {
+            IQueryable<ApplicationUser> query = _userManager.Users;
+
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            return await query.FirstOrDefaultAsync(filter);
+        }
     }
 }

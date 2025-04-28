@@ -1,12 +1,13 @@
 ﻿using AutoMapper;
-using DDDAplication.Application.DTOs;
+using DDDAplication.Application.DTOs.ApiResponse;
+using DDDAplication.Application.DTOs.Auth;
+using DDDAplication.Application.DTOs.User;
 using DDDAplication.Application.Interfaces;
 using DDDAplication.Domain.Entities;
 using DDDAplication.Domain.Interfaces;
 using DDDAplication.Infrastructure.Helpers;
 using DDDAplication.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace DDDAplication.Application.Services
@@ -18,26 +19,30 @@ namespace DDDAplication.Application.Services
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly JwtService _jwtService;
 
-        public UserService(IUserRepository userRepository, IRoleRepository roleRepository, IMapper mapper, UserManager<ApplicationUser> userManager, IConfiguration configuration)
+        public UserService(IUserRepository userRepository, IRoleRepository roleRepository, IMapper mapper, UserManager<ApplicationUser> userManager, IConfiguration configuration, JwtService jwtService)
         {
             _userRepository = userRepository;
             _roleRepository = roleRepository;
             _mapper = mapper;
             _userManager = userManager;
             _configuration = configuration;
+            _jwtService = jwtService;
         }
 
-        public async Task<ApiResponse<UserDto>> GetByIdAsync(string id)
+        public async Task<ApiResponse<UserPorfileDto>> GetByIdAsync(string id)
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
-                return ApiResponse<UserDto>.CreateErrorResponse($"User with id {id} not found.");
+                return ApiResponse<UserPorfileDto>.CreateErrorResponse($"User with id {id} not found.");
             }
 
-            var userDto = _mapper.Map<UserDto>(user);
-            return ApiResponse<UserDto>.CreateSuccessResponse("User retrieved successfully.", userDto);
+            var userDto = _mapper.Map<UserPorfileDto>(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            userDto.Roles = roles.ToList();
+            return ApiResponse<UserPorfileDto>.CreateSuccessResponse("User retrieved successfully.", userDto);
         }
 
 
@@ -82,15 +87,20 @@ namespace DDDAplication.Application.Services
             var user = await _userRepository.GetByIdAsync(userDto.Id.ToString());
             if (user == null)
             {
-                return ApiResponse<UserDto>.CreateErrorResponse($"User with id {userDto.Id} not found.");
+                return ApiResponse<UserDto>.CreateErrorResponse($"User with id {userDto.Id} not found."); 
+            }
+            var existingUserWithEmail = await _userRepository.GetUsersAsync(l=>(l.Email==userDto.Email || l.UserName == userDto.UserName)  && l.Id.ToString()!=userDto.Id);
+            if (existingUserWithEmail.Any())
+            {
+                return ApiResponse<UserDto>.CreateErrorResponse("Email or username is already in use."); ;
             }
 
             _mapper.Map(userDto, user);
-
             await _userRepository.UpdateAsync(user);
 
             return ApiResponse<UserDto>.CreateSuccessResponse("User updated successfully.", userDto);
         }
+
 
         public async Task<ApiResponse<string>> RegisterUser(RegisterModelDto model)
         {
@@ -127,7 +137,7 @@ namespace DDDAplication.Application.Services
                 return ApiResponse<LoginResultDto>.CreateErrorResponse("Invalid credentials.");
             }
 
-            var token = JwtHelper.GenerateToken(user, _configuration);
+            var token = await _jwtService.GenerateTokenAsync(user);
             var roles = await _userManager.GetRolesAsync(user);
 
             var userDto = _mapper.Map<UserLoginResponseDto>(user);
@@ -144,7 +154,7 @@ namespace DDDAplication.Application.Services
 
         public async Task<ApiResponse<RefreshTokenModelDto>> RefreshTokenAsync(RefreshTokenModelDto model)
         {
-            var principal = JwtHelper.GetPrincipalFromExpiredToken(model.Token, _configuration);
+            var principal =  _jwtService.GetPrincipalFromExpiredToken(model.Token);
             if (principal == null)
             {
                 return ApiResponse<RefreshTokenModelDto>.CreateErrorResponse("Invalid token.");
@@ -158,7 +168,7 @@ namespace DDDAplication.Application.Services
                 return ApiResponse<RefreshTokenModelDto>.CreateErrorResponse("User not found.");
             }
 
-            var newToken = JwtHelper.GenerateToken(user, _configuration);
+            var newToken = await _jwtService.GenerateTokenAsync(user);
             var response = new RefreshTokenModelDto { Token = newToken };
 
             return ApiResponse<RefreshTokenModelDto>.CreateSuccessResponse("Token refreshed successfully.", response);
@@ -170,8 +180,15 @@ namespace DDDAplication.Application.Services
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user == null)
                 return ApiResponse<string>.CreateErrorResponse("User not found.");
+           
+            var passwordValid = await _userManager.CheckPasswordAsync(user, model.OldPassword);
+            if (!passwordValid)
+            {
+                return ApiResponse<string>.CreateErrorResponse("Old password is incorrect.");
+            }
 
             var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+
             if (!result.Succeeded)
             {
                 var errors = result.Errors.Select(e => e.Description).ToList();
@@ -200,20 +217,21 @@ namespace DDDAplication.Application.Services
             return ApiResponse<UserDto>.CreateSuccessResponse("User found.", userDto);
         }
 
-        public async Task<ApiResponse<UserDto>> GetProfileAsync(string userId)
+        public async Task<ApiResponse<UserPorfileDto>> GetProfileAsync(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
-                return ApiResponse<UserDto>.CreateErrorResponse("User ID is required.");
+                return ApiResponse<UserPorfileDto>.CreateErrorResponse("User ID is required.");
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
-                return ApiResponse<UserDto>.CreateErrorResponse("User not found.");
+                return ApiResponse<UserPorfileDto>.CreateErrorResponse("User not found.");
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            var profileDto = _mapper.Map<UserDto>(user);
+            var profileDto = _mapper.Map<UserPorfileDto>(user);
+            profileDto.Roles = roles.ToList();
 
-            return ApiResponse<UserDto>.CreateSuccessResponse("Profile retrieved successfully.", profileDto);
+            return ApiResponse<UserPorfileDto>.CreateSuccessResponse("Profile retrieved successfully.", profileDto);
         }
 
 
@@ -277,41 +295,57 @@ namespace DDDAplication.Application.Services
 
         public async Task<ApiResponse<bool>> AssignRolesToUserAsync(string userId, List<string> roles)
         {
-            var user = await _userRepository.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId,false);
             if (user == null)
             {
                 return ApiResponse<bool>.CreateErrorResponse("User not found.");
             }
 
-            var existingRoles = await _userManager.GetRolesAsync(user);
-            if (existingRoles.Count() != roles.Count)
+            var normalizedRoles = roles.Select(r => r.ToUpper()).ToList();
+            var existingRoles = await _roleRepository.GetRolesAsync(r => normalizedRoles.Contains(r.NormalizedName.ToUpper()));
+            var existingRoleNames = existingRoles.Select(r => r.NormalizedName.ToUpper()).ToList();
+
+            if (normalizedRoles.Count != existingRoleNames.Count)
             {
                 return ApiResponse<bool>.CreateErrorResponse("One or more roles not found.");
             }
 
-            var result = await _userManager.AddToRolesAsync(user, existingRoles);
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            var duplicateRoles = normalizedRoles.Intersect(userRoles.Select(r => r.ToUpper())).ToList();
+            if (duplicateRoles.Any())
+            {
+                var rolesList = string.Join(", ", duplicateRoles);
+                return ApiResponse<bool>.CreateErrorResponse($"The user already has the following role(s): {rolesList}.");
+            }
+
+            var result = await _userManager.AddToRolesAsync(user, roles);
             if (result.Succeeded)
+            {
                 return ApiResponse<bool>.CreateSuccessResponse("Roles assigned successfully.", true);
+            }
 
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             return ApiResponse<bool>.CreateErrorResponse($"Failed to assign roles: {errors}");
-
         }
+
         public async Task<ApiResponse<bool>> RemoveRolesFromUserAsync(string userId, List<string> roles)
         {
-            var user = await _userRepository.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId,false);
             if (user == null)
             {
                 return ApiResponse<bool>.CreateErrorResponse("User not found.");
             }
 
-            var existingRoles = await _userManager.GetRolesAsync(user);
+            var normalizedRoles = roles.Select(r => r.ToUpper()).ToList();
+            var existingRoles = await _roleRepository.GetRolesAsync(l => normalizedRoles.Contains(l.NormalizedName.ToUpper()));
+
             if (existingRoles.Count() != roles.Count)
             {
                 return ApiResponse<bool>.CreateErrorResponse("One or more roles not found.");
             }
 
-            var result = await _userManager.RemoveFromRolesAsync(user, existingRoles);
+            var result = await _userManager.RemoveFromRolesAsync(user, existingRoles.Select(l=>l.NormalizedName));
             if (result.Succeeded)
                 return ApiResponse<bool>.CreateSuccessResponse("Roles removed successfully.", true);
 

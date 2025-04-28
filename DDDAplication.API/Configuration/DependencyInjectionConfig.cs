@@ -1,4 +1,5 @@
 ﻿using DDDAplication.Application;
+using DDDAplication.Infrastructure.Helpers;
 using System.Reflection;
 
 namespace DDDAplication.API.Configuration
@@ -17,6 +18,8 @@ namespace DDDAplication.API.Configuration
 
             var infrastructureAssembly = Assembly.Load("DDDAplication.Infrastructure");
             services.AddServicesFromAssembly(infrastructureAssembly);
+
+            services.AddScoped<JwtService>();
 
             return services;
         }

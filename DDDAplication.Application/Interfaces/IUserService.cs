@@ -1,4 +1,6 @@
-﻿using DDDAplication.Application.DTOs;
+﻿using DDDAplication.Application.DTOs.ApiResponse;
+using DDDAplication.Application.DTOs.Auth;
+using DDDAplication.Application.DTOs.User;
 using DDDAplication.Domain.Entities;
 
 namespace DDDAplication.Application.Interfaces
@@ -6,7 +8,7 @@ namespace DDDAplication.Application.Interfaces
     public interface IUserService
     {
         Task<ApiResponse<IEnumerable<UserDto>>> GetAllAsync();
-        Task<ApiResponse<UserDto>> GetByIdAsync(string id);
+        Task<ApiResponse<UserPorfileDto>> GetByIdAsync(string id);
         Task<ApiResponse<UserDto>> Delete(string id);
         Task<ApiResponse<UserDto>> Update(UserDto userDto);
 
@@ -16,7 +18,7 @@ namespace DDDAplication.Application.Interfaces
 
         Task<ApiResponse<string>> ChangePasswordAsync(ChangePasswordModelDto model);
         Task<ApiResponse<UserDto>> FindByNameAsync(string username);
-        Task<ApiResponse<UserDto>> GetProfileAsync(string userId);
+        Task<ApiResponse<UserPorfileDto>> GetProfileAsync(string userId);
 
         Task<ApiResponse<string>> SendResetLinkAsync(SendResetLinkModelDto model);
         Task<ApiResponse<string>> ResetPasswordAsync(ResetPasswordModelDto model);

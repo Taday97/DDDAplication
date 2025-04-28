@@ -1,20 +1,20 @@
 ﻿using DDDAplication.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DDDAplication.Domain.Interfaces
 {
     public interface IRoleRepository
     {
-        Task<IEnumerable<Role>> GetAllAsync();
-        Task<Role> GetByIdAsync(string id);
-        Task<Role> AddAsync(Role user);
-        Task<Role> UpdateAsync(Role user);
-        Task<Role> DeleteAsync(string id);
-        Task<IEnumerable<Role>> GetRolesAsync(Expression<Func<Role, bool>> filter = null);
+        Task<Role?> GetByIdAsync(Guid id, bool asNoTracking = true);
+
+        Task<IEnumerable<Role>> GetRolesAsync(Expression<Func<Role, bool>> filter = null, bool asNoTracking = true);
+
+        Task<Role?> FindFirstRoleAsync(Expression<Func<Role, bool>> filter, bool asNoTracking = true);
+
+        Task<Role> AddAsync(Role role);
+
+        Task<Role?> UpdateAsync(Role role);
+
+        Task<Role?> DeleteAsync(Guid id);
     }
 }
