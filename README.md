@@ -6,6 +6,25 @@ This project is ideal for showcasing clean architecture, security practices with
 
 ---
 
+## 📚 Table of Contents
+
+- [Key Features](#key-features)
+- [Technologies Used](#technologies-used)
+- [System Architecture](#-system-architecture)
+  - [Infrastructure Layer](#-infrastructure-layer)
+  - [Domain Layer](#-domain-layer)
+  - [Application Layer](#-application-layer)
+  - [API Layer](#-api-layer)
+  - [Client Applications](#-client-applications)
+- [Setup and Installation](#setup-and-installation)
+- [CI/CD Pipeline](#cicd-pipeline)
+- [Testing Approach](#testing-approach)
+- [Global Exception Handling](#global-exception-handling)
+- [Docker Setup](#docker-setup)
+- [Screenshots](#screenshots)
+
+---
+
 ### Key Features:
 
 - **User Registration and Authentication**: Secure user registration and login using **ASP.NET Identity**, with token-based authentication for API security.
@@ -37,7 +56,8 @@ This project is ideal for showcasing clean architecture, security practices with
 ### Layered Architecture
 
 **DDDAplication** implements a layered architecture that adheres to Domain-Driven Design (DDD) principles:
-![Screenshot 2025-05-09 014556](https://github.com/user-attachments/assets/ead7d67f-6120-4955-a6ee-4622c48f3824)
+
+![Screenshot 2025-05-09 014556](https://github.com/user-attachments/assets/a540860c-1901-4b47-8178-c17f016fcefb)
 
 
 ---
