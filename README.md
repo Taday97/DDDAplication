@@ -32,6 +32,55 @@ This project is ideal for showcasing clean architecture, security practices with
 - **Nito.AsyncEx**: For enhancing asynchronous operations and simplifying concurrent task management.
 
 ---
+## 🏗️ System Architecture
+
+### Layered Architecture
+
+**DDDAplication** implements a layered architecture that adheres to Domain-Driven Design (DDD) principles:
+![Screenshot 2025-05-09 014556](https://github.com/user-attachments/assets/ead7d67f-6120-4955-a6ee-4622c48f3824)
+
+
+---
+
+### 📦 Infrastructure Layer
+- **Repository Implementations**: Data access logic
+- **AppDbContext**: Entity Framework Core configuration
+- **ASP.NET Identity**: Authentication and authorization
+- **JWT Service**: Token generation and validation
+- **Database Migration**: Schema management
+
+---
+
+### 🧠 Domain Layer
+- **Domain Entities**: Business objects with behavior
+- **Repository Interfaces**: Abstractions for data access
+- **Value Objects**: Immutable objects representing concepts with no identity
+
+---
+
+### ⚙️ Application Layer
+- **Application Services**: Implement use cases and business workflows
+- **DTOs (Data Transfer Objects)**: For API communication
+- **Validators**: Input validation using FluentValidation
+- **API Response Wrappers**: Standardized API response format
+
+---
+
+### 🌐 API Layer
+Entry point for client applications, handles HTTP requests/responses.
+
+- **Controllers**: Define endpoints and route requests to appropriate services
+- **Middleware**: Handle cross-cutting concerns like authentication and exception handling
+- **Program.cs**: Application configuration and service registration
+
+---
+
+### 🖥️ Client Applications
+- **User Browsers & API Clients**: Consumers of the API
+
+---
+
+Each layer has specific responsibilities and promotes separation of concerns to maintain a scalable and maintainable codebase.
 
 ### Setup and Installation:
 
