@@ -7,8 +7,10 @@ namespace DDDAplication.Application
     {
         public static void AddAutoMapperServices(this IServiceCollection services)
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            services.AddAutoMapper(assembly);
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AddMaps(typeof(ApplicationAutommaperConfig).Assembly);
+            });
         }
     }
 }
